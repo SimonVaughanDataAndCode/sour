@@ -4,7 +4,19 @@ Functions for cross correlation of unevenly sampled time series.
 These are pure R functions for estimating cross correlation functions (CCF) based to two time series that may be unevenly and asynchronously sampled time series. Options are the Discrete Correlation Function (DCF; Edelson & Krolik 1988) or the Interpolated Cross Correlation Function (ICCF; Gaskell & Sparke 1986). 
 You can also produce estimates of uncertainty on the CCF, its peak and centroid using the Flux Randomisation and Random Subsample Selection (FR/RSS) method of Peterson et al. (1998). 
 
+## Setting up
+
+Just load the functions
+
+```R
+ source("cross_correlation.R")
+```
+
+and you should be ready to use the main function cross.correlate(...)
+
 For a worked example: see the tests/test_CrossCorrelation.R script
+
+## Example
 
 ![example](figures/time_series.png)
 
@@ -49,6 +61,8 @@ The distribution of centroids of the CCF from 2,000 simulations. Plotted using e
   lines(density(dcf.out$cent.dist, n = 256, na.rm = TRUE), lwd = 2)
   cat('-- mean lag', mean(dcf.out$cent.dist), fill = TRUE)
 ```
+
+## References
 
 For more info on the methods see:
 
