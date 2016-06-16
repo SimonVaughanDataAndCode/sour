@@ -8,15 +8,47 @@ For a worked example: see the tests/test_CrossCorrelation.R script
 
 ![example](figures/time_series.png)
 
-Example of two time series to compare.
+Example of two time series to compare. Each series is an array or data frame with columns t, y (and optionally) dy. In this example, we have ts.1 and ts.2 as the two data frames. 
+
+```R
+  ts.1 <- read.table("data/time_series_1.txt", header=TRUE)
+  ts.2 <- read.table("data/time_series_2.txt", header=TRUE)
+
+  # insert some dodgy (missing) data
+  ts.1[20:50,2] <- NA
+  ts.2[40:70,2] <- NA
+```
+
+Then we compute the DCF with
+
+```R
+  dcf.out <- cross.correlate(ts.1, ts.2, local.est = TRUE, 
+                             dtau = 1, nsim = 2000, max.lag = 70)
+```
+
+Here we chose the width for the lag bins (1.0), the maximum lag to examine (-70.0 to +70.0), and use 2,000 simulations to estimate the centroid distribution. Setting local.est = TRUE means that the mean and variances are computed using only pairs of data contributing to a given lag bin.
 
 ![example](figures/ccf.png)
 
-The resulting CCF computed with the DCF
+The resulting CCF computed with the DCF. The is plotted using, e.g.
+
+```R
+  plot(dcf.out$tau-dtau/2, dcf.out$ccf, type = "s", lwd = 2, 
+       bty = "n", ylim = c(-1, 1), xlab = "lag", ylab = "CCF", 
+       col = "black", main = "DCF test - true lag is 10")
+  grid(col = "darkgrey")
+```
 
 ![example](figures/ccf_centroid_distribution.png)
 
-The distribution of centroids of the CCF from 2,000 simulations.
+The distribution of centroids of the CCF from 2,000 simulations. Plotted using e.g.
+
+```R
+  hist(dcf.out$cent.dist, breaks = 50, col = "steelblue1", 
+       border = NA, main = "CCF centroid distribution", prob = TRUE)
+  lines(density(dcf.out$cent.dist, n = 256, na.rm = TRUE), lwd = 2)
+  cat('-- mean lag', mean(dcf.out$cent.dist), fill = TRUE)
+```
 
 For more info on the methods see:
 
