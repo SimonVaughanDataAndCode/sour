@@ -7,10 +7,15 @@ You can also produce estimates of uncertainty on the CCF, its peak and centroid 
 For a worked example: see the tests/test_CrossCorrelation.R script
 
 ![example](figures/time_series.png)
+
 Example of two time series to compare.
+
 ![example](figures/ccf.png)
+
 The resulting CCF computed with the DCF
+
 ![example](figures/ccf_centroid_distribution.png)
+
 The distribution of centroids of the CCF from 2,000 simulations.
 
 For more info on the methods see:
