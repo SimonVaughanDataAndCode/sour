@@ -170,7 +170,7 @@ cross.correlate <- function(ts.1, ts.2,
 # History:
 #  21/03/16 - First working version
 #
-# Simon Vaughan, University of Leicester
+# (c) Simon Vaughan, University of Leicester
 # -----------------------------------------------------------
 
 matrix.tau <- function(t.1, t.2) {
@@ -278,7 +278,7 @@ matrix.tau <- function(t.1, t.2) {
 #  11/04/16 - v1.3 - added dtau and chatter input; bug fixes;
 #                     removed na.rm (now automatic)
 #
-# Simon Vaughan, University of Leicester
+# (c) Simon Vaughan, University of Leicester
 # -----------------------------------------------------------
 
 dcf <- function(ts.1, ts.2, 
@@ -533,7 +533,7 @@ dcf <- function(ts.1, ts.2,
 #  05/04/16 - v1.1 - added na.rm option to strip out non-finite values
 #  09/04/16 - v1.2 - minor fixes
 #
-# Simon Vaughan, University of Leicester
+# (c) Simon Vaughan, University of Leicester
 # -----------------------------------------------------------
 
 iccf <- function(ts.1, ts.2, 
@@ -740,7 +740,7 @@ iccf.core <- function(t.1, x.1, t.2, x.2,
 # History:
 #  21/03/16 - First working version
 #
-# Simon Vaughan, University of Leicester
+# (c) Simon Vaughan, University of Leicester
 # -----------------------------------------------------------
 
 fr.rss <- function(dat) {
@@ -859,8 +859,11 @@ fr.rss <- function(dat) {
 #  21/03/16 - v1.0 - First working version
 #  05/04/16 - v1.1 - added na.rm option to strip out non-finite values
 #  09/04/16 - v1.2 - added use.errors option; minor fixes
+#  23/07/16 - v1.3 - minor change to handling of centroid calculation.
+#                     if the CCF is entirely <0 then return NA for
+#                     centroid.
 #
-# Simon Vaughan, University of Leicester
+# (c) Simon Vaughan, University of Leicester
 # -----------------------------------------------------------
 
 ccf.errors <- function(ts.1, ts.2, 
@@ -930,14 +933,17 @@ ccf.errors <- function(ts.1, ts.2,
     
     ccf.sim[i,] <- result.sim$ccf    
     
-    # find and store the peak of the DCF
+    # find and store the peak of the CCF
     peak <- which.max(result.sim$ccf)
     peak.lag[i] <- result.sim$tau[peak]
     
-    # find and store the centroid of the DCF
-    mask <- which( result.sim$ccf >= peak.frac * max(abs(result.sim$ccf), na.rm=TRUE) )
-    cent.lag[i] <- sum(result.sim$ccf[mask]*result.sim$tau[mask], na.rm=TRUE)  /
-                    sum(result.sim$ccf[mask], na.rm=TRUE)
+    # find and store the centroid of the CCF
+    # if the CCF peak is <0 then return NA 
+    if (max(result.sim$ccf) > 0) {
+      mask <- which( result.sim$ccf >= peak.frac * max(result.sim$ccf, na.rm=TRUE) )
+      cent.lag[i] <- sum(result.sim$ccf[mask]*result.sim$tau[mask], na.rm=TRUE)  /
+                      sum(result.sim$ccf[mask], na.rm=TRUE)
+    }
     
     cat("\r Processed", i, "of", nsim, "simulations")
   }
