@@ -1,20 +1,20 @@
 # -----------------------------------------------------------
 cross.correlate <- function(ts.1, ts.2,
-                            method="dcf",
-                            max.lag=NULL, 
-                            lag.bins=NULL, 
-                            min.pts=5,
-                            dtau=NULL,
-                            local.est=FALSE,
-                            zero.clip=NULL,
-                            use.errors=FALSE,
-                            one.way=FALSE,
-                            cov=FALSE,
-                            prob=0.1, 
-                            nsim=0,
-                            peak.frac=0.8,
-                            chatter=0,
-                            plot=FALSE, ...) {
+                            method = "dcf",
+                            max.lag = NULL, 
+                            lag.bins = NULL, 
+                            min.pts = 5,
+                            dtau = NULL,
+                            local.est = FALSE,
+                            zero.clip = NULL,
+                            use.errors = FALSE,
+                            one.way = FALSE,
+                            cov = FALSE,
+                            prob = 0.1, 
+                            nsim = 0,
+                            peak.frac = 0.8,
+                            chatter = 0,
+                            plot = FALSE, ...) {
   
   # check arguments
   if (missing(ts.1)) stop('Missing ts.1 data frame.')
@@ -27,28 +27,69 @@ cross.correlate <- function(ts.1, ts.2,
   }
 
   # check the contents of the input time series
-  if (!exists("t", where = ts.1)) stop('Missing column t in ts.1')
-  if (!exists("y", where = ts.1)) stop('Missing column y in ts.1')
-  if (!exists("t", where = ts.2)) stop('Missing column t in ts.2')
-  if (!exists("y", where = ts.2)) stop('Missing column y in ts.2')
+  if (!exists("t", where = ts.1)) stop('Missing column t in ts.1.')
+  if (!exists("y", where = ts.1)) stop('Missing column y in ts.1.')
+  if (!exists("t", where = ts.2)) stop('Missing column t in ts.2.')
+  if (!exists("y", where = ts.2)) stop('Missing column y in ts.2.')
   
-  # check we still have enough data to make this worthwhile
-  if (length(ts.1$t) <= 5) stop('ts.1 is too short')
-  if (length(ts.2$t) <= 5) stop('ts.2 is too short')
+  # strip out bad data (any NA, NaN or Inf values)
+  goodmask.1 <- is.finite(ts.1$t) & is.finite(ts.1$y)
+  ts.1 <- ts.1[goodmask.1, ]
+  t.1 <- ts.1$t
+  n.1 <- length(t.1)
+  goodmask.2 <- is.finite(ts.2$t) & is.finite(ts.2$y)
+  ts.2 <- ts.2[goodmask.2, ]
+  t.2 <- ts.2$t
+  n.2 <- length(t.2)
+  
+  # warning if there's too little data to bother proceeding
+  if (n.1 <= 5) stop('ts.1 is too short.')
+  if (n.2 <= 5) stop('ts.2 is too short.')
+
+  # if max.tau not set, set it to be 1/4 the max-min time range
+  if (is.null(max.lag)) 
+    max.lag <- (max(c(t.1, t.2)) - min(c(t.1, t.2))) * 0.25
+  
+  # if dtau is not defined, set to default
+  if (is.null(dtau))
+    dtau <- min( diff(t.1) )
+  
+  # total number of lag bins; make sure its odd!
+  n.tau <- ceiling(2 * max.lag / dtau)  
+  if (n.tau %% 2 == 0) 
+    n.tau <- n.tau + 1
+  lag.bins <- round( (n.tau - 1) / 2 )
+  if (lag.bins < 4) stop('You have too few lag bins.')
+  
+  # now adjust max.lag so that -max.lag to +max.lag spans odd number of 
+  # dtau bins
+  max.lag <- (1/2) * dtau * n.tau
+  
+  # define the vector of lag bins. tau is the centre of each bin.
+  # should extend from -max.tau to +max.tau, centred on zero.
+  tau <- seq(-max.lag, max.lag, by = dtau)
+  
+  # optional feedback for the user  
+  if (chatter > 0) {
+    cat('-- lag.bins:', lag.bins, fill = TRUE)
+    cat('-- max.lag:', max.lag, fill = TRUE)
+    cat('-- n.tau:', n.tau, fill = TRUE)
+    cat('-- dtau:', dtau, fill = TRUE)
+    cat('-- length ts.1:', n.1, ' dt:', diff(t.1[1:2]), fill = TRUE)
+    cat('-- length ts.2:', n.2, ' dt:', diff(t.2[1:2]), fill = TRUE)
+  }
   
   # compute CCF for the input data
   ccf.out <- NA
   if (method == "dcf") {
-    ccf.out <- dcf(ts.1, ts.2, 
-                   local.est=local.est, min.pts=min.pts, dtau=dtau,
-                   max.lag=max.lag, lag.bins=lag.bins, 
-                   zero.clip=zero.clip, chatter=chatter, cov=cov)
+    ccf.out <- dcf(ts.1, ts.2, tau,
+                   local.est = local.est, min.pts = min.pts, 
+                   zero.clip = zero.clip, chatter = chatter, cov = cov)
   } else {
-    ccf.out <- iccf(ts.1, ts.2, local.est=local.est, dtau=dtau,
-                    max.lag=max.lag, lag.bins=lag.bins, chatter=chatter, 
-                    cov=cov, one.way=one.way, zero.clip=zero.clip)
+    ccf.out <- iccf(ts.1, ts.2, tau,
+                    local.est = local.est, chatter = chatter, 
+                    cov = cov, one.way = one.way, zero.clip = zero.clip)
   }
-  
   
   # extract the lag settings
   max.lag <- max(ccf.out$tau)
@@ -57,22 +98,22 @@ cross.correlate <- function(ts.1, ts.2,
   dtau <- diff(ccf.out$tau[1:2])
   
   if (chatter > 0) {
-    cat('-- max.lag:   ', max.lag, fill=TRUE)
-    cat('-- nlag:      ', nlag, fill=TRUE)
-    cat('-- lag.bins:  ', lag.bins, fill=TRUE)
-    cat('-- dtau:      ', dtau, fill=TRUE)
+    cat('-- max.lag:   ', max.lag, fill = TRUE)
+    cat('-- nlag:      ', nlag, fill = TRUE)
+    cat('-- lag.bins:  ', lag.bins, fill = TRUE)
+    cat('-- dtau:      ', dtau, fill = TRUE)
   }
   
   # plot the CCF
   if (plot == TRUE) {
-    plot(0, 0, type="n", lwd=2, bty="n", ylim=c(-1, 1), xlim=c(-1, 1)*max.lag,
-         xlab="lag", ylab="CCF", ...)
-    grid(col="lightgrey")
+    plot(0, 0, type = "n", lwd = 2, bty = "n", ylim = c(-1, 1), xlim = c(-1, 1)*max.lag,
+         xlab = "lag", ylab = "CCF", ...)
+    grid(col = "lightgrey")
     dtau <- diff(ccf.out$tau[1:2])
     if (method == "dcf") {
-      lines(ccf.out$tau-dtau/2, ccf.out$ccf, type="s", lwd=2, col="blue")
+      lines(ccf.out$tau-dtau/2, ccf.out$ccf, type="s", lwd = 2, col = "blue")
     } else {
-      lines(ccf.out$tau, ccf.out$ccf, col="blue", lwd=3)
+      lines(ccf.out$tau, ccf.out$ccf, col = "blue", lwd = 3)
     }
   }
   
@@ -89,10 +130,11 @@ cross.correlate <- function(ts.1, ts.2,
     if (nsim < 2/max(prob)) stop('Not enough simulations. Make nsim or prob larger.')
         
     # run some simulations
-    sims <- ccf.errors(ts.1, ts.2, nsim=nsim, max.lag=max.lag, lag.bins=lag.bins,
-                     method=method, peak.frac=peak.frac, min.pts=min.pts,
-                     local.est=local.est, zero.clip=zero.clip, prob=prob,
-                     cov=cov, chatter=chatter, acf.flag=acf.flag, one.way=one.way)
+    sims <- ccf.errors(ts.1, ts.2, tau, nsim = nsim,
+                     method = method, peak.frac = peak.frac, min.pts = min.pts,
+                     local.est = local.est, zero.clip = zero.clip, prob = prob,
+                     cov = cov, chatter = chatter, acf.flag = acf.flag, 
+                     one.way = one.way)
     
     lower <- sims$lags$lower
     upper <- sims$lags$upper
@@ -102,21 +144,26 @@ cross.correlate <- function(ts.1, ts.2,
   } else {
     
     if (method == "dcf") {
-      acf.1 <- dcf(ts.1,  ts.1, 
-                   local.est=local.est, min.pts=min.pts, dtau=dtau,
-                   max.lag=max.lag, lag.bins=lag.bins, 
-                   chatter=chatter, cov=cov)
+      acf.1 <- dcf(ts.1,  ts.1, tau,
+                   local.est = local.est, 
+                   min.pts = min.pts, 
+                   chatter = chatter, cov = cov)
       acf.2 <- dcf(ts.2, ts.2,  
-                   local.est=local.est, min.pts=min.pts, dtau=dtau,
-                   max.lag=max.lag, lag.bins=lag.bins, 
-                   chatter=chatter, cov=cov)
+                   local.est = local.est, 
+                   min.pts = min.pts, dtau = dtau,
+                   max.lag = max.lag, lag.bins = lag.bins, 
+                   chatter = chatter, cov = cov)
     } else {
-      acf.1 <- iccf(ts.1, ts.1, local.est=local.est, dtau=dtau,
-                    max.lag=max.lag, lag.bins=lag.bins, chatter=chatter, 
-                    cov=cov, one.way=one.way)
-      acf.2 <- iccf(ts.2, ts.2, local.est=local.est, dtau=dtau,
-                    max.lag=max.lag, lag.bins=lag.bins, chatter=chatter, 
-                    cov=cov, one.way=one.way)
+      acf.1 <- iccf(ts.1, ts.1, tau, 
+                    local.est = local.est, 
+                    chatter = chatter, 
+                    cov = cov, 
+                    one.way=one.way)
+      acf.2 <- iccf(ts.2, ts.2, tau, 
+                    local.est = local.est, 
+                    chatter = chatter, 
+                    cov = cov, 
+                    one.way = one.way)
     }
     
     sigma <- sqrt( (1/ccf.out$n) * sum(acf.1$ccf*acf.2$ccf) )
@@ -129,20 +176,23 @@ cross.correlate <- function(ts.1, ts.2,
     pnk <- rgb(255, 192, 203, 100, maxColorValue = 255)
     indx <- is.finite(ccf.out$ccf)
     polygon(c(ccf.out$tau[indx], rev(ccf.out$tau[indx])), c(lower[indx], rev(upper[indx])), 
-            col=pnk, border=NA)
+            col=pnk, border = NA)
     if (method == "dcf") {
-      lines(ccf.out$tau-dtau/2, ccf.out$ccf, type="s", lwd=2, col="blue")
+      lines(ccf.out$tau-dtau/2, ccf.out$ccf, type = "s", lwd = 2, col = "blue")
     } else {
-      lines(ccf.out$tau, ccf.out$ccf, col="blue", lwd=3)
+      lines(ccf.out$tau, ccf.out$ccf, col = "blue", lwd = 3)
     }
   }
   
   # return output  
-  result <- list(tau=ccf.out$tau, ccf=ccf.out$ccf, lower=lower,
-                 upper=upper, peak.dist=peak.dist,
-                 cent.dist=cent.dist, method=method)
+  result <- list(tau = ccf.out$tau, 
+                 ccf = ccf.out$ccf, 
+                 lower = lower,
+                 upper = upper, 
+                 peak.dist = peak.dist,
+                 cent.dist = cent.dist, 
+                 method = method)
   return(result)
-  
 }
 
 # -----------------------------------------------------------
@@ -177,15 +227,17 @@ matrix.tau <- function(t.1, t.2) {
 
   # check arguments
   if (missing(t.1)) stop('Missing t.1 vector.')
-  if (missing(t.2)) t.j <- t.i 
+  if (missing(t.2)) t.2 <- t.1 
   
   # compute t.0, an arbitrary start time
   # this improves accuracy if the time offset is large
   # compared to the range of times.
   t.0 <- min(t.1, t.2)
+  t.1 <- t.1 - t.0
+  t.2 <- t.2 - t.0
   
   # compute the time lag matrix
-  tau <- outer(t.1-t.0, t.2-t.0, "-")
+  tau <- outer(t.1, t.2, "-")
   
   # return to calling function
   return(tau)  
@@ -198,9 +250,7 @@ matrix.tau <- function(t.1, t.2) {
 #                and values (x) for data series 1.
 #                Contains optional errors (dx).
 #   ts.2      - data frame for data series 2
-#   max.lag   - maximum lag to consider
-#   lag.bins  - number of lag bins to examine 
-#   dtau      - specify the width of the lag bins
+#   tau       - list of lag bins
 #   min.pts   - set to NA any lag bins with fewer points (default: 10)
 #   local.est - use 'local' (not 'global') means and variances?
 #   zero.clip - remove pairs of points with exactly zero lag? 
@@ -277,25 +327,26 @@ matrix.tau <- function(t.1, t.2) {
 #  09/04/16 - v1.2 - added use.errors option; minor fixes
 #  11/04/16 - v1.3 - added dtau and chatter input; bug fixes;
 #                     removed na.rm (now automatic)
+#  24/07/16 - v1.4 - moved most checks and tau calculation to the 
+#                     main cross.correlation function.
 #
 # (c) Simon Vaughan, University of Leicester
 # -----------------------------------------------------------
 
 dcf <- function(ts.1, ts.2, 
-                max.lag=NULL, 
-                lag.bins=NULL, 
-                min.pts=5,
-                dtau=NULL,
-                local.est=FALSE,
-                zero.clip=NULL,
-                use.errors=FALSE,
-                cov=FALSE,
-                chatter=0) {
+                tau= NULL,
+                min.pts = 5,
+                local.est = FALSE,
+                zero.clip = NULL,
+                use.errors = FALSE,
+                cov = FALSE,
+                chatter = 0) {
 
   # check arguments
   if (missing(ts.1)) stop('Missing ts.1 data frame.')
   if (missing(ts.2)) stop('Missing ts.2 data frame')
-
+  if (is.null(tau)) stop('Missing tau in.')
+  
   # extract columns from ts.1
   # create "error" column if not present
   t.1 <- ts.1$t
@@ -321,28 +372,12 @@ dcf <- function(ts.1, ts.2,
   if (length(dx.1) == 1) dx.1 <- rep(dx.1, n.1)
   if (length(dx.2) == 1) dx.2 <- rep(dx.2, n.2)
   
-  # strip out bad data (any NA, NaN or Inf values)
-  goodmask.1 <- is.finite(x.1)
-  x.1 <- x.1[goodmask.1]
-  t.1 <- t.1[goodmask.1]
-  dx.1 <- dx.1[goodmask.1]
-  n.1 <- length(t.1)
-  goodmask.2 <- is.finite(x.2)
-  x.2 <- x.2[goodmask.2]
-  t.2 <- t.2[goodmask.2]
-  dx.2 <- dx.2[goodmask.2]
-  n.2 <- length(t.2)
-  
   # remove any (possible) large offset on the time stamps
   # this may improve numerical accuracy on lags if the t.0
   # is very large compared to the sampling interval.
   t.0 <- min(c(t.1, t.2))
   t.1 <- t.1 - t.0
   t.2 <- t.2 - t.0
-  
-  # check we still have enough data to make this worthwhile
-  if (n.1 <= 5) stop('x.1 is too short')
-  if (n.2 <= 5) stop('x.2 is too short')
   
   # subtract the global mean from each time series
   x.1 <- x.1 - mean(x.1)
@@ -351,12 +386,6 @@ dcf <- function(ts.1, ts.2,
   # compute variance of each series
   var.1 <- var(x.1, na.rm = TRUE)
   var.2 <- var(x.2, na.rm = TRUE)
-  
-  # if lag.bins is not set, set it to be 1/4 the number of data points
-  if (is.null(lag.bins)) lag.bins <- floor(0.25 * min(n.1, n.2))
-  
-  # if max.tau not set, set it to be 1/4 the max-min time range
-  if (is.null(max.lag)) max.lag <- (max(c(t.1, t.2)) - min(c(t.1, t.2))) * 0.25
   
   # set mean square error to zero unless use.errors == TRUE
   # else compute mean square error and remove from variance
@@ -369,28 +398,11 @@ dcf <- function(ts.1, ts.2,
     sd.1 <- sqrt( var.1 - mse.1 )
     sd.2 <- sqrt( var.2 - mse.2 )
   }
-
-  # if dtau is defined on input, use this to define the grid lags
-  if (!is.null(dtau)) lag.bins <- ceiling(max.lag / dtau)
-  if (lag.bins < 2) stop('You have too few DCF lag bins')
   
-  # define the vector of lag bins. tau is the centre of each bin.
-  # should extend from -max.tau to +max.tau, centred on zero.
-  n.tau <- 2*lag.bins + 1
-  tau <- seq(-max.lag, max.lag, length.out = n.tau)
-  
-  # width of each lag bin
+  # define lag settings
+  n.tau <- length(tau)
+  lag.bins <- as.integer(n.tau - 1)/2
   dtau <- diff(tau[1:2])
-  
-  if (chatter > 0) {
-    cat('-- lag.bins:', lag.bins, fill=TRUE)
-    cat('-- max.lag:', max.lag, fill=TRUE)
-    cat('-- n.tau:', n.tau, fill=TRUE)
-    cat('-- dtau:', dtau, fill=TRUE)
-    cat('-- length ts.1:', n.1, ' dt:', diff(t.1[1:2]), fill=TRUE)
-    cat('-- length ts.2:', n.2, ' dt:', diff(t.2[1:2]), fill=TRUE)
-    cat('-- max.lag:', max.lag, fill=TRUE)
-  }
   
   # compute a n.1 x n.2 matrix of the lags for every pair of data points
   tau.12 <- matrix.tau(t.1, t.2)
@@ -404,8 +416,8 @@ dcf <- function(ts.1, ts.2,
   storage.mode(tau.12) <- "integer"
   
   # prepare the vector to store the correlation coefficient values
-  dcf <- array(NA, dim=n.tau)
-  n.i <- array(1, dim=n.tau)
+  dcf <- array(NA, dim = n.tau)
+  n.i <- array(1, dim = n.tau)
   
   # loop through each lag bin
   for (i in 1:n.tau) {
@@ -419,10 +431,10 @@ dcf <- function(ts.1, ts.2,
     indx <- which(tau.12 == lag.i, arr.ind = TRUE)
 
     # extract the relevant data points
-    x1.i <- x.1[indx[,1]]
-    x2.i <- x.2[indx[,2]]
-    dx1.i <- dx.1[indx[,1]]
-    dx2.i <- dx.2[indx[,2]]
+    x1.i <- x.1[indx[, 1]]
+    x2.i <- x.2[indx[, 2]]
+    dx1.i <- dx.1[indx[, 1]]
+    dx2.i <- dx.2[indx[, 2]]
     n.i[i] <- length(x1.i)
 
     # count the number of pairs are zero lag
@@ -431,8 +443,8 @@ dcf <- function(ts.1, ts.2,
     # if using zero clipping, then also ignore all pairs with t_i - t_j = 0
     if ( !is.null(zero.clip) & i == lag.bins+1 ) {
       #indx <- which(tau.12 == lag.i & tau.12 != 0, arr.ind = TRUE)
-      t1.i <- t.1[indx[,1]]
-      t2.i <- t.2[indx[,2]]
+      t1.i <- t.1[indx[, 1]]
+      t2.i <- t.2[indx[, 2]]
       mask <- ( abs(t1.i - t2.i) > dtau/2*zero.clip)
       x1.i <- x1.i[mask]
       x2.i <- x2.i[mask]
@@ -484,7 +496,7 @@ dcf <- function(ts.1, ts.2,
   }
 
   # return final output
-  return(data.frame(tau=tau, ccf=dcf, n=n.i))
+  return(data.frame(tau = tau, ccf = dcf, n = n.i))
   
 }
 
@@ -504,9 +516,7 @@ dcf <- function(ts.1, ts.2,
 # INPUTS:
 #   ts.1      - (data frame) times series 1, contains t, y.
 #   ts.2      - (data frame) times series 2, contains t, y.
-#   max.lag   - maximum lag to consider
-#   lag.bins  - number of lag bins to examine 
-#   dtau      - specify the width of the lag spacing
+#   tau       - list of lags
 #   cov       - compute covariances rather than correlations (default: FALSE)
 #   chatter   - (integer) level of information reported while running
 #
@@ -532,24 +542,25 @@ dcf <- function(ts.1, ts.2,
 #  21/03/16 - v1.0 - First working version
 #  05/04/16 - v1.1 - added na.rm option to strip out non-finite values
 #  09/04/16 - v1.2 - minor fixes
+#  24/07/16 - v1.3 - moved most checks and tau calculation to the 
+#                     main cross.correlation function.
 #
 # (c) Simon Vaughan, University of Leicester
 # -----------------------------------------------------------
 
 iccf <- function(ts.1, ts.2, 
-                 max.lag=NULL, 
-                 lag.bins=NULL,
-                 local.est=FALSE,
-                 dtau=NULL,
-                 one.way=FALSE,
-                 zero.clip=NULL,
-                 cov=FALSE,
-                 chatter=0) {
+                 tau = NULL,
+                 local.est = FALSE,
+                 one.way = FALSE,
+                 zero.clip = NULL,
+                 cov = FALSE,
+                 chatter = 0) {
   
   # check arguments
   if (missing(ts.1)) stop('Missing TS.1 argument ICCF')
   if (missing(ts.2)) stop('Missing TS.2 argument ICCF')
-
+  if (is.null(tau)) stop('Missing tau in.')
+  
   t.1 <- ts.1$t
   x.1 <- ts.1$y
   n.1 <- length(t.1)
@@ -558,55 +569,20 @@ iccf <- function(ts.1, ts.2,
   x.2 <- ts.2$y
   n.2 <- length(t.2)
 
-  # strip out bad data (any NA, NaN or Inf values)
-  goodmask.1 <- is.finite(t.1) & is.finite(x.1)
-  x.1 <- x.1[goodmask.1]
-  t.1 <- t.1[goodmask.1]
-  n.1 <- length(t.1)
-  goodmask.2 <- is.finite(t.2) & is.finite(x.2)
-  x.2 <- x.2[goodmask.2]
-  t.2 <- t.2[goodmask.2]
-  n.1 <- length(t.1)
-  
-  if (n.1 <= 5) stop('x.1 is too short')
-  if (n.2 <= 5) stop('x.2 is too short')
-  
   # remove means
   x.1 <- x.1 - mean(x.1)
   x.2 <- x.2 - mean(x.2)
-  
-  # if lag.bins is not set, set it to be the number of data points
-  if (is.null(lag.bins)) 
-    lag.bins <- floor(min(n.1, n.2))
 
-  # if max.tau not set, set it to be 1/4 the max-min time range
-  if (is.null(max.lag)) 
-    max.lag <- (max(c(t.1, t.2)) - min(c(t.1, t.2))) * 0.25
+  # define lag settings
+  n.tau <- length(tau)
+  lag.bins <- as.integer(n.tau - 1)/2
+  dtau <- diff(tau[1:2])
 
-  # if dtau is defined on input, use this to define the grid lags
-  if (!is.null(dtau)) lag.bins <- ceiling(max.lag / dtau)
-  if (lag.bins < 2) stop('You have too few ICCF lag bins')
-  
-  # define the vector of lag bins. tau is the centre of each bin.
-  # should extend from -max.tau to +max.tau, centred on zero.
-  n.tau <- 2*lag.bins + 1
-  tau <- seq(-max.lag, max.lag, length.out = n.tau)
-
-  # optional feedback for the user  
-  if (chatter > 0) {
-    cat('-- lag.bins:', lag.bins, fill=TRUE)
-    cat('-- max.lag:', max.lag, fill=TRUE)
-    cat('-- n.tau:', n.tau, fill=TRUE)
-    cat('-- dtau:', dtau, fill=TRUE)
-    cat('-- length ts.1:', n.1, ' dt:', diff(t.1[1:2]), fill=TRUE)
-    cat('-- length ts.2:', n.2, ' dt:', diff(t.2[1:2]), fill=TRUE)
-  }
-  
   # main calculation
-  iccf.ij <- iccf.core(t.1, x.1, t.2, x.2, tau, local.est=local.est, cov=cov)
+  iccf.ij <- iccf.core(t.1, x.1, t.2, x.2, tau, local.est = local.est, cov = cov)
   r.ij <- iccf.ij$r
   if (one.way == FALSE) {
-    iccf.ji <- iccf.core(t.2, x.2, t.1, x.1, -tau, local.est=local.est, cov=cov)
+    iccf.ji <- iccf.core(t.2, x.2, t.1, x.1, -tau, local.est = local.est, cov = cov)
     r.ji <- iccf.ji$r
     r <- 0.5 * (r.ij + r.ji)
   } else {
@@ -617,7 +593,7 @@ iccf <- function(ts.1, ts.2,
   if (chatter > 0) {
     r.max <- max(abs(r), na.rm = TRUE)
     if (r.max > 1 & cov == FALSE)
-      warning(paste('CCF outside of (-1,+1): ', r.max))
+      warning(paste('CCF outside of (-1, +1): ', r.max))
   }
   
   # remove the zero-lag bin if requested
@@ -625,7 +601,7 @@ iccf <- function(ts.1, ts.2,
     r[lag.bins+1] <- NA
   
   # return output to user  
-  return(data.frame(tau=tau, ccf=r, n=iccf.ij$n))
+  return(data.frame(tau = tau, ccf = r, n = iccf.ij$n))
   
 }
 
@@ -644,16 +620,17 @@ iccf <- function(ts.1, ts.2,
 # x.1 and x.2 data points involved.
 # We assume x.1 and x.2 have zero sample mean.
 
-iccf.core <- function(t.1, x.1, t.2, x.2, 
+iccf.core <- function(t.1, x.1, 
+                      t.2, x.2, 
                       tau, 
-                      local.est=FALSE,
-                      cov=FALSE) {
+                      local.est = FALSE,
+                      cov = FALSE) {
   
   n.tau <- length(tau)
   lag.bins <- as.integer( (n.tau-1)/2 )
   
-  r.ij <- array(0, dim=n.tau)     # correlation of x1(t_i) vs. x2(t_2)
-  n.ij <- array(1, dim=n.tau)     # no. data pairs at lag t_i - t_j
+  r.ij <- array(0, dim = n.tau)     # correlation of x1(t_i) vs. x2(t_2)
+  n.ij <- array(1, dim = n.tau)     # no. data pairs at lag t_i - t_j
 
   sd.1 <- sd(x.1)                 # sqrt(var) of time series 1
   sd.2 <- sd(x.2)                 # sqrt(var) of time series 2
@@ -810,8 +787,7 @@ fr.rss <- function(dat) {
 #                and values (y) for data series 1.
 #                Contains optional errors (3rd column).
 #   ts.2      - data frame for data series 2
-#   max.lag   - maximum lag to consider
-#   lag.bins  - number of lag bins to examine 
+#   tau       - list of lags
 #   min.pts   - set to NA any lag bins with fewer points (default: 10)
 #   local.est - use 'local' (not 'global') means and variances?
 #   prob      - probability level to use for confidence intervals
@@ -867,8 +843,7 @@ fr.rss <- function(dat) {
 # -----------------------------------------------------------
 
 ccf.errors <- function(ts.1, ts.2, 
-                       max.lag=NULL, 
-                       lag.bins=NULL, 
+                       tau = NULL,
                        min.pts=5,
                        local.est=FALSE,
                        cov=FALSE,
@@ -884,6 +859,7 @@ ccf.errors <- function(ts.1, ts.2,
 
   # check arguments
   if (missing(ts.1)) stop('Missing ts.1 data frame.')
+  if (is.null(tau)) stop('Missing tau in.')
   
   # if only one time series then duplicate (compute ACF)
   acf.flag <- FALSE
@@ -897,12 +873,9 @@ ccf.errors <- function(ts.1, ts.2,
   
   if (prob > 1 | prob < 0) 
     stop('prob should be in the range 0-1')
+  
+  nlag <- length(tau)
 
-  if (missing(lag.bins)) stop('Must specify lag.bins.')
-  nlag <- lag.bins*2 + 1
-  
-  if (missing(max.lag)) stop('Must specify max.lag.')
-  
   # set up an array for the simulated DCFs
   ccf.sim <- array(NA, dim=c(nsim, nlag))  
   peak.lag <- array(NA, dim=nsim)
@@ -921,14 +894,18 @@ ccf.errors <- function(ts.1, ts.2,
     
     # compute CCF of randomised data
     if (method == "dcf") {
-      result.sim <- dcf(ts1.sim, ts2.sim, 
-                        local.est=local.est, min.pts=min.pts, 
-                        max.lag=max.lag, lag.bins=lag.bins, cov=cov,
-                        zero.clip=zero.clip, use.errors=use.errors)
+      result.sim <- dcf(ts1.sim, ts2.sim, tau,
+                        local.est = local.est, 
+                        min.pts = min.pts, 
+                        cov = cov,
+                        zero.clip = zero.clip, 
+                        use.errors = use.errors)
     } else {
-      result.sim <- iccf(ts1.sim, ts2.sim, 
-                         zero.clip=zero.clip, max.lag=max.lag, lag.bins=lag.bins, 
-                        local.est=local.est, cov=cov, one.way=one.way)
+      result.sim <- iccf(ts1.sim, ts2.sim, tau,
+                         zero.clip = zero.clip, 
+                         local.est = local.est, 
+                         cov = cov, 
+                         one.way = one.way)
     }
     
     ccf.sim[i,] <- result.sim$ccf    
@@ -939,38 +916,47 @@ ccf.errors <- function(ts.1, ts.2,
     
     # find and store the centroid of the CCF
     # if the CCF peak is <0 then return NA 
-    if (max(result.sim$ccf) > 0) {
-      mask <- which( result.sim$ccf >= peak.frac * max(result.sim$ccf, na.rm=TRUE) )
-      cent.lag[i] <- sum(result.sim$ccf[mask]*result.sim$tau[mask], na.rm=TRUE)  /
-                      sum(result.sim$ccf[mask], na.rm=TRUE)
+    if (max(result.sim$ccf, na.rm = TRUE) > 0) {
+      mask <- which( result.sim$ccf >= peak.frac * max(result.sim$ccf, na.rm = TRUE) )
+      cent.lag[i] <- sum(result.sim$ccf[mask]*result.sim$tau[mask], na.rm = TRUE)  /
+                      sum(result.sim$ccf[mask], na.rm = TRUE)
+    } else {
+      cat('\n', i, '\n')
+      warning('Negative CCF encountered', immediate. = TRUE)
+      cat('\n', i, '\n')
+    }
+    if (!is.finite(cent.lag[i])) {
+      cat('\n', i, '\n')
+      warning('Non-finite centroid.', immediate. = TRUE)
+      cat('\n', i, '\n')
     }
     
     cat("\r Processed", i, "of", nsim, "simulations")
   }
 
-  cat(fill=TRUE)
+  cat(fill = TRUE)
 
   # now compute the prob/2 and 1-prob/2 quantiles at each lag
-  ccf.lims <- array(NA, dim=c(nlag, 2))
+  ccf.lims <- array(NA, dim = c(nlag, 2))
   probs <- c(prob/2, 1-prob/2)
   for (i in 1:nlag) {
-    ccf.lims[i,] <- quantile(ccf.sim[,i], probs=probs, na.rm=TRUE)
+    ccf.lims[i,] <- quantile(ccf.sim[,i], probs = probs, na.rm = TRUE)
   }
 
   # package the DCF: lag, values, lower and upper limits  
-  lags <- data.frame(tau=result.sim$tau, lower=ccf.lims[,1], upper=ccf.lims[,2])
+  lags <- data.frame(tau = result.sim$tau, lower = ccf.lims[,1], upper = ccf.lims[,2])
   
   # package the peak and centroid data
-  dists <- data.frame(peak.lag=peak.lag, cent.lag=cent.lag)
+  dists <- data.frame(peak.lag = peak.lag, cent.lag = cent.lag)
   
   # interval of centroids
   if (chatter >= 0) 
   cat('-- ', signif(100*(1-prob), 3), '% lag interval ', 
-      quantile(cent.lag, probs[1], na.rm=TRUE), ' - ',
-      quantile(cent.lag, probs[2], na.rm=TRUE), fill=TRUE, sep="")
+      quantile(cent.lag, probs[1], na.rm = TRUE), ' - ',
+      quantile(cent.lag, probs[2], na.rm = TRUE), fill = TRUE, sep = "")
   
   
-  return(list(lags=lags, dists=dists))
+  return(list(lags = lags, dists = dists))
 }
 
 # -----------------------------------------------------------
