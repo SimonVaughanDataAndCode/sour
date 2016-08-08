@@ -63,7 +63,7 @@ cross.correlate <- function(ts.1, ts.2,
   
   # now adjust max.lag so that -max.lag to +max.lag spans odd number of 
   # dtau bins
-  max.lag <- (1/2) * dtau * n.tau
+  max.lag <- (1/2) * dtau * (n.tau-1)
   
   # define the vector of lag bins. tau is the centre of each bin.
   # should extend from -max.tau to +max.tau, centred on zero.
@@ -74,6 +74,7 @@ cross.correlate <- function(ts.1, ts.2,
     cat('-- lag.bins:', lag.bins, fill = TRUE)
     cat('-- max.lag:', max.lag, fill = TRUE)
     cat('-- n.tau:', n.tau, fill = TRUE)
+    cat('-- length(tau)', length(tau), fill = TRUE)
     cat('-- dtau:', dtau, fill = TRUE)
     cat('-- length ts.1:', n.1, ' dt:', diff(t.1[1:2]), fill = TRUE)
     cat('-- length ts.2:', n.2, ' dt:', diff(t.2[1:2]), fill = TRUE)
@@ -920,15 +921,6 @@ ccf.errors <- function(ts.1, ts.2,
       mask <- which( result.sim$ccf >= peak.frac * max(result.sim$ccf, na.rm = TRUE) )
       cent.lag[i] <- sum(result.sim$ccf[mask]*result.sim$tau[mask], na.rm = TRUE)  /
                       sum(result.sim$ccf[mask], na.rm = TRUE)
-    } else {
-      cat('\n', i, '\n')
-      warning('Negative CCF encountered', immediate. = TRUE)
-      cat('\n', i, '\n')
-    }
-    if (!is.finite(cent.lag[i])) {
-      cat('\n', i, '\n')
-      warning('Non-finite centroid.', immediate. = TRUE)
-      cat('\n', i, '\n')
     }
     
     cat("\r Processed", i, "of", nsim, "simulations")
