@@ -1,3 +1,8 @@
+# To do:
+#   - iccf.core: bring approx() interpolation outside main loop (speed)
+#   - add more test data, unit tests
+#   - use ACF(0) to normalise CCF(0) to ensure ACF(0)=1...?
+ 
 # -----------------------------------------------------------
 cross.correlate <- function(ts.1, ts.2,
                             method = "dcf",
@@ -672,9 +677,9 @@ iccf.core <- function(t.1, x.1,
   # if local.est == FALSE then normalise by pairs at lag = 0.
   # if local.est == TRUE use actual no pairs in lag bin i.
   if (local.est == TRUE) {
-    r.ij <- r.ij / n.ij
+    r.ij <- r.ij / (n.ij-1)
   } else {
-    r.ij <- r.ij / n.ij[lag.bins+1]
+    r.ij <- r.ij / (n.ij[lag.bins+1] - 1)
   }
   
   # return vector of coefficients 
