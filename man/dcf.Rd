@@ -12,6 +12,8 @@ dcf(ts.1, ts.2, tau = NULL, min.pts = 5, local.est = FALSE,
 
 \item{ts.2}{(array or dataframe) data for time series 1 and 2.}
 
+\item{tau}{(vector) list of lags at which to compute the CCF.}
+
 \item{min.pts}{(integer) each DCF bin must contain at least \code{min.pts} correlation coefficients.}
 
 \item{local.est}{(logical) use 'local' (not 'global') means and variances?}
@@ -32,9 +34,6 @@ A data frame containing columns:
 }
 \description{
 \code{dcf} returns the Discrete Correlation Function estimates.
-}
-\details{
-\param tau (vector) list of lags at which to compute the CCF.
 }
 \section{Notes}{
 

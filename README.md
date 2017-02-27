@@ -81,3 +81,9 @@ For more info on the methods see:
 
 * [B. Peterson et al. (1998; PASJ, v110, pp660-670)](http://adsabs.harvard.edu/abs/1998PASP..110..660P)
 
+## Referencing sour
+
+If you make use of this code in your work, please do cite the following paper,
+which first used the package, and for which the sour was originally developed.
+
+[R. Edelson et al., 2017, ApJ, in press]

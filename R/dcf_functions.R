@@ -73,7 +73,7 @@ matrix.tau <- function(x, y) {
 #' 
 #' \code{dcf} returns the Discrete Correlation Function estimates.
 #'
-#' \param tau (vector) list of lags at which to compute the CCF.
+#' @param tau (vector) list of lags at which to compute the CCF.
 #' @inheritParams cross.correlate
 #'
 #' @return
@@ -117,7 +117,6 @@ matrix.tau <- function(x, y) {
 #' (default) then the usual sample variance will be used.
 #' 
 #' @seealso \code{\link{cross.correlate}}, \code{\link{iccf}}
-
 #' @examples 
 #' ## Example using NGC 5548 data
 #' res <- dcf(cont, hbeta, tau = seq(-200, 200, by = 5))

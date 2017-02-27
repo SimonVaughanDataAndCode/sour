@@ -2,7 +2,7 @@
 % Please edit documentation in R/iccf_functions.R
 \name{iccf}
 \alias{iccf}
-\title{Estimate a cross correlation between two time series}
+\title{Estimate an interpolated cross correlation between two time series}
 \usage{
 iccf(ts.1, ts.2, tau = NULL, local.est = FALSE, one.way = FALSE,
   zero.clip = NULL, cov = FALSE, chatter = 0)
@@ -26,8 +26,9 @@ iccf(ts.1, ts.2, tau = NULL, local.est = FALSE, one.way = FALSE,
 }
 \value{
 A data frame containing columns:
- \item{tau}{lags (in time units)}
- \item{ccf}{correlations coefficent in each lag bin}
+ \item{tau}{(array) lags (in time units)}
+ \item{ccf}{(array) correlations coefficent in each lag bin}
+ \item{n}{(array) A one dimensional array containing the number of pairs of points used at each lag.}
 }
 \description{
 \code{iccf} returns the Interpolated Cross-Correlation Function estimates.

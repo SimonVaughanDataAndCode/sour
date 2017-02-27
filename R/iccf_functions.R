@@ -11,7 +11,7 @@
 # (c) Simon Vaughan, University of Leicester
 # -----------------------------------------------------------
 
-#' Estimate a cross correlation between two time series
+#' Estimate an interpolated cross correlation between two time series
 #' 
 #' \code{iccf} returns the Interpolated Cross-Correlation Function estimates.
 #'
@@ -20,8 +20,9 @@
 #'
 #' @return
 #' A data frame containing columns:
-#'  \item{tau}{lags (in time units)}
-#'  \item{ccf}{correlations coefficent in each lag bin}
+#'  \item{tau}{(array) lags (in time units)}
+#'  \item{ccf}{(array) correlations coefficent in each lag bin}
+#'  \item{n}{(array) A one dimensional array containing the number of pairs of points used at each lag.}
 #'
 #' @section Notes:
 #' In what follows we refer to the \code{t, y} values of time series 1 
@@ -103,22 +104,53 @@ iccf <- function(ts.1, ts.2,
 }
 
 # -----------------------------------------------------------
-# The main loop for the ICCF
-# In this part we take time series 1, x.1 at t.1, pair them with values
-# from time series 2, x.2 at t.1-tau[i] produce by linearly interpolating
-# between the nearest values of x.2.
-# At a given tau[i] we su, the product of the paired x.1 and x.2 values 
-#  r[i] = (1/n) * sum(x.1 * x.2) / (sd.1 * sd.2)
-# In the simplest case n, sd.1 and sd.2 are constant and are the
-# number of pairs at lag=0 and the total sqrt(var) of each time series.
-# If local.est is TRUE then n, sd.1 and sd.2 are evaluated "locally"
-# i.e. they are vary for each lag tau[i]. In this case they are the
-# number of good pairs at lag tau[i], and the sqrt(vars) of just the 
-# x.1 and x.2 data points involved.
-# We assume x.1 and x.2 have zero sample mean.
 
 #' Compute the one-way Interpolated Cross-Correlation Function (ICCF)
-
+#' 
+#' \code{iccf.core} returns the basic interpolated correlation coefficients.
+#' 
+#' The main loop for the ICCF. In this part we take time series 1, \code{x.1} at
+#' \code{t.1}, pair them with values from time series 2, \code{x.2} at
+#' \code{t.1-tau[i]} produce by linearly interpolating between the nearest
+#' values of \code{x.2}. At a given \code{tau[i]} we sum the product of the
+#' paired \code{x.1} and \code{x.2} values \code{r[i] = (1/n) * sum(x.1 * x.2) /
+#' (sd.1 * sd.2)} In the simplest case \code{n}, \code{sd.1} and \code{sd.2} are
+#' constant and are the number of pairs at \code{lag=0} and the total
+#' \code{sqrt(var)} of each time series. If \code{local.est = TRUE} then
+#' \code{n}, \code{sd.1} and \code{sd.2} are evaluated 'locally' i.e. they are
+#' vary for each lag \code{tau[i]}. In this case they are the number of good
+#' pairs at lag \code{tau[i]}, and the \code{sqrt(vars)} of just the \code{x.1}
+#' and \code{x.2} data points involved. We assume \code{x.1} and \code{x.2} have
+#' zero sample mean.
+#' 
+#' @param t.1,x.1 time and value for time series 1
+#' @param t.2,x.2 time and value for time series 2
+#' @inheritParams cross.correlate
+#' 
+#' @return 
+#'  A list with components
+#'  \item{r}{(array) A one dimensional array containing the correlation
+#'  coefficients at each lag.} 
+#'  \item{n}{(array) A one dimensional array containing the number of pairs of
+#'  points used at each lag.}
+#'  
+#' @section Notes:
+#'  We assume that the input data \code{x.1} and \code{x.2} have been
+#'  mean-subtracted.
+#'  
+#' @seealso \code{\link{cross.correlate}}, \code{\link{iccf}}
+#' 
+#' @examples
+#' ## Example using NGC 5548 data
+#' t1 <- cont$t
+#' y1 <- cont$y - mean(cont$y)
+#' t2 <- hbeta$t
+#' y2 <- hbeta$y - mean(hbeta$y)
+#' tau <- seq(-150, 150)
+#' result <- iccf.core(t1, y1, t2, y2, tau = tau)
+#' plot(tau, result$r, type = "l")
+#'  
+#' @export
 iccf.core <- function(t.1, x.1, 
                       t.2, x.2, 
                       tau, 
