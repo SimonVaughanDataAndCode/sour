@@ -1,0 +1,17 @@
+Package: sour
+Title: Cross-correlation of time series (which may be unevenly sampled)
+Version: 0.0.0.9000
+Authors@R: person("Simon", "Vaughan", email = "svdataman@gmail.com", role = c("aut", "cre"))
+Description: Estimate the cross-correlation between two time series which may 
+  be irregularly and/or non-simultaneously sampled. The CCF is computed using
+  one of two methods: (1) the Discrete Correlation Function (DCF; Edelson &
+  Krolik 1988) or (2) the Interpolated Cross Correlation Function (ICCF; Gaskell 
+  & Sparke 1986). You can also produce estimates of uncertainty on the CCF, its 
+  peak and centroid using the Flux Randomisation and Random Subsample Selection
+  (FR/RSS) method of Peterson et al. (1998).
+Depends: R (>= 3.2.2)
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+URL: https://github.com/svdataman/sour
+

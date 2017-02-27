@@ -16,8 +16,8 @@ lines(ts.2$t, ts.2$y, type="s", lwd=2, col="red")
 # ----------------------------------------------
 # compute the DCF
 ccf.out <- cross.correlate(ts.1, ts.2, local.est = TRUE, 
-                           chatter = 1, dtau = 0.2, 
-                           nsim = 500, method = "iccf", plot = TRUE)
+                           chatter = 1, dtau = 0.2, one.way=TRUE,
+                           nsim = 0, method = "iccf", plot = TRUE)
 
 dtau <- diff(ccf.out$tau[1:2])
 
@@ -26,6 +26,7 @@ plot(ccf.out$tau-dtau/2, ccf.out$ccf, type = "s", lwd = 2,
      bty = "n", ylim = c(-1, 1), xlab = "lag", ylab = "CCF", 
      col = "black", main = "CCF test - true lag is 10")
 grid(col = "darkgrey")
+
 
 # plot distributions of centroids
 hist(ccf.out$cent.dist, breaks = 50, col = "steelblue1", 
