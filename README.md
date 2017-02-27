@@ -11,7 +11,7 @@ Selection (FR/RSS) method of Peterson et al. (1998).
 
 ## Setting up
 
-Sour is an R package, but is still in development. To set up from GitHub first install (if you haven't already) Hadley Wickham's devtools package.
+Sour is an R package, but is still in development. To set up from GitHub first install (if you haven't already) Hadley Wickham's fantastic [devtools package](http://r-pkgs.had.co.nz/).
 ```R
    install.packages("devtools")
 ```
