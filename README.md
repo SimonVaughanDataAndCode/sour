@@ -1,7 +1,7 @@
 # Sour
 Functions for cross correlation of unevenly sampled time series.
 
-Sour is a package or R functions for estimating the cross-correlation between
+Sour is an R package for estimating the cross-correlation between
 two time series which may be irregularly and/or non-simultaneously sampled. The
 CCF is computed using one of two methods: (1) the Discrete Correlation Function
 (DCF; Edelson & Krolik 1988) or (2) the Interpolated Cross Correlation Function
@@ -12,15 +12,15 @@ Selection (FR/RSS) method of Peterson et al. (1998).
 ## Setting up
 
 Sour is an R package, but is still in development. To set up from GitHub first install (if you haven't already) Hadley Wickham's devtools package.
-```
+```R
    install.packages("devtools")
 ```
 Now you can install tonic straight from GitHub:
-```
+```R
    devtools::install_github("svdataman/sour")
 ```
 Now, load into your R session with
-```
+```R
    require(sour)
 ```
 and you're good to go.
