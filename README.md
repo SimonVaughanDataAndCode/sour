@@ -78,7 +78,6 @@ We can use these simulations to place intervals on the lag. Here we show the qua
 ## To do:
  * Bring interpolation outside of main loop (in iccf.core) for speed
  * proper unit tests
- * document subordinate functions
 
 ## References
 
