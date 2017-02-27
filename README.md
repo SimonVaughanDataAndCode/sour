@@ -15,7 +15,7 @@ Sour is an R package, but is still in development. To set up from GitHub first i
 ```R
    install.packages("devtools")
 ```
-Now you can install tonic straight from GitHub:
+Now you can install sour straight from GitHub:
 ```R
    devtools::install_github("svdataman/sour")
 ```
@@ -28,6 +28,18 @@ and you're good to go.
 ## Example
 
 The package comes with an example dataset. The data comprise two time series cont and hbeta. Each series is an array or data frame with columns t, y (and optionally) dy. 
+```R
+  plot(cont$t, cont$y, bty = "n", type = "o", xlab = "time (day)", ylab = "flux")
+  lines(hbeta$t, hbeta$y, type = "o", col = "red")
+```
+
+![example](figures/ngc5548_data.png)
+
+The data show measurements of the optical continuum and H-beta line flux for the
+active galaxy NGC 5548, obtained by [AGN
+Watch](http://www.astronomy.ohio-state.edu/~agnwatch/n5548/lcv/). 
+
+We can compute the CCF, using the ICCF method, as follows:
 
 ```R
   result <- cross.correlate(cont, hbeta, method = "iccf", dtau = 1, max.lag = 550)
@@ -37,10 +49,7 @@ The package comes with an example dataset. The data comprise two time series con
 
 ![example](figures/ngc5548.png)
 
-The data show measurements of the optical continuum and H-beta line flux for the
-active galaxy NGC 5548, obtained by [AGN
-Watch](http://www.astronomy.ohio-state.edu/~agnwatch/n5548/lcv/). The CCF peak
-at around -20 days indicates the Hbeta lags behind the continuum.
+The CCF peak at around -20 days indicates the Hbeta lags behind the continuum.
 
 Then we (optionally) use simulations to assess the centroid of the CCF near 
 its peak.
@@ -58,7 +67,7 @@ of data contributing to a given lag bin.
 
 ![example](figures/centroid_dist.png)
 
-We can use these simulations to place intervals on the lag. Here we show the quartiles for te CCF centroid.
+We can use these simulations to place intervals on the lag. Here we show the quartiles for the CCF centroid.
 
 ```R
    quantile(result$cent.dist)
