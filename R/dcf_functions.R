@@ -1,128 +1,61 @@
 # -----------------------------------------------------------
 # matrix.tau
-# Inputs: 
-#   t.1   - times for vector x.1
-#   t.2   - times for vector x.2
-#
-# Value:
-#  tau.ij - matrix of time lags 
-#
-# Description:
-#  Define the matrix of time lags
-#   tau[i,j] = t.1[i] - t.2[j]
-#
-# Note that in the special case that t.1=t.2 we have
-# a square symmetric matrix: tau[i,j] = tau[j,i]. 
-# In the even more special case that
-# the two series are identically and evenly sampled
-# (t.1[i] = t.2[i] = i * dt + t0) then we have a 
-# circulant matrix; the jth column tau[,j] is the (j-1)th 
-# cyclic permutation of the first column. This matrix is
-# symmetric, Toeplitz and circulant. 
 #
 # History:
-#  21/03/16 - First working version
+#  21/03/16 - v1.0 - First working version
+#  27/02/17 - v1.1 - renamed input variables.
 #
 # (c) Simon Vaughan, University of Leicester
 # -----------------------------------------------------------
 
-matrix.tau <- function(t.1, t.2) {
+#' Compute a matrix of differences given two vectors.
+#' 
+#' \code{matrix.tau} returns a matrix of differences between two vectors.
+#' 
+#' Given two vectors - \code{x} (length \code{M}) and \code{y} (length \code{N}) - as 
+#' input, return the \code{N*M} matrix of differences \code{result[i,j] = x[i] - y[j]}.
+#' 
+#' @param x vector 1
+#' @param y vector 2 (default to vector 1 if not specified)
+#'
+#' @return 
+#' \code{N*M} array of differences, \code{result[i,j] = x[i] - y[j]}
+#'
+#' @section Notes:
+#' Note that in the special case that \code{x=y} we have a square symmetric
+#' matrix: \code{result[i,j] = result[j,i]}. In the even more special case that 
+#' the two vectors are evenly spaced (\code{x[i] = y[i] = i * delta + const})
+#' then we have a circulant matrix; the \code{j}th column \code{result[,j]} is
+#' the \code{(j-1)}th cyclic permutation of the first column. This matrix is 
+#' symmetric, Toeplitz and circulant.
+#' 
+#' @examples 
+#' result <- matrix.tau(c(1,2,3), c(2,3,4,5,6))
+#' print(result)
+#' 
+#' @export
+matrix.tau <- function(x, y) {
   
   # check arguments
-  if (missing(t.1)) stop('Missing t.1 vector.')
-  if (missing(t.2)) t.2 <- t.1 
+  if (missing(x)) stop('Missing input vector.')
+  if (missing(y)) y <- x
   
-  # compute t.0, an arbitrary start time
-  # this improves accuracy if the time offset is large
-  # compared to the range of times.
-  t.0 <- min(t.1, t.2)
-  t.1 <- t.1 - t.0
-  t.2 <- t.2 - t.0
+  # compute x.0, an arbitrary start point for vector x.
+  # This improves accuracy if the offset is large
+  # compared to the range of values
+  x.0 <- min(x, y)
+  x <- x - x.0
+  y <- y - x.0
   
   # compute the time lag matrix
-  tau <- outer(t.1, t.2, "-")
+  tau <- outer(x, y, "-")
   
   # return to calling function
-  return(tau)  
+  return(as.matrix(tau))  
 }
 
 # -----------------------------------------------------------
 # dcf
-# Inputs: 
-#   ts.1      - data frame containing times (t)
-#                and values (x) for data series 1.
-#                Contains optional errors (dx).
-#   ts.2      - data frame for data series 2
-#   tau       - list of lag bins
-#   min.pts   - set to NA any lag bins with fewer points (default: 10)
-#   local.est - use 'local' (not 'global') means and variances?
-#   zero.clip - remove pairs of points with exactly zero lag? 
-#   use.errors - TRUE/FALSE: if TRUE then subtract mean square error from variances
-#   cov       - compute covariances rather than correlations (default: FALSE)
-#   chatter   - (integer) level of information reported while running
-#
-# Value:
-#   result    - a data frame containing columns...
-#      tau    - the centre of the lag bins (vector)
-#      ccf    - the correlation coefficent in each lag bin
-#
-# Description:
-#  Compute the Discrete Correlation Function based on the method 
-# outlined in Edelson & Korlik (1998, ApJ, v333, pp646-659). 
-#
-# This is a way to estimate the CCF for a pair of time series
-# (t.1, x.1) and (t.2, x.2) when the time sampling is uneven
-# and non-synchronous. 
-#
-# Input are two time series (data frames with columns: t, x, dx [optional])
-# Output is the correlation coefficient r(tau) in different lag bins.
-# A peak in t at positive lag indicates that ts.2 leads ts.1; a negative lag 
-# indicates that ts.1 leads ts.2.
-#
-# We first subtract the mean values from x.1 and x.2. Then,
-# within the ith lag bin (tau[i] - dtau/2, tau[i] + dtau/2) we collect 
-# all pairs (x.1, x.2) of data for which t.1 - t.2 falls within the lag bin.
-# Using these pairs of data we compute the sum of their product and
-# normalise it:
-#
-#    cov[i] = (1/n) * sum_k x.1[k] * x.2[k] 
-#
-# Here, k is the set of values of points within the lag bin and has
-# n pairs. This gives a covariance. If cov=TRUE we keep these values.
-# Otherwise (default: cov=FALSE) we normalise by the product of the 
-# standard deviations of x.1 and x.2: sqrt(var(x.1)*var(x.2)).
-#
-# The number of output lags (tau) is 2*lag.bins+1, and the lags are
-# centred on zero. So they run from -max.lag to +max.lag.
-# Any lag bins containing fewer than min.pts pairs of points will have
-# dcf = NA. IF lag.bins is not supplied it is set to ~1/4 the number of
-# points in the short time series.
-#
-# If max.lag is not supplied it will be set to 1/4 the difference between 
-# the very first and last times (from either time series).
-#
-# If local.est == FALSE (default) then the correlation coefficient is computed
-# using the 'global' mean and variance of each time series. 
-#
-# If local.est == TRUE then the correlation coefficient is computed
-# using the 'local' mean and variance. Within each lag bin the 
-# mean to be subtrated and the varaince to be divided are computed using
-# only data points contributing to that lag bin, i.e. using only x.1 and x.2 for 
-# which the corresponding t.1 - t.2 is within the range 
-# (tau[i] - dtau/2, tau[i] + dtau/2).
-#
-# If 'errors' are suppled for either or both time series (dx.1, dx.2) 
-# and you have set use.errors == TRUE then the variance used 
-# in the denominator terms of correlation coefficient calculation will be
-# the 'excess variance', i.e. the total sample variance minus the 
-# mean square error. If dx.1 and/or dx.2 are a single number, this is 
-# assumed to be the same error for each data point. If use.errors == FALSE
-# (default) then the usual sample variance will be used.
-#
-# If zero.clip=TRUE then pairs of points with zero lag between them
-# are not included in the correlation estimates. This helps remove
-# zero-lag errors, when measurements in two bands are affected by systematic
-# errors occuring at the same time.
 #
 # History:
 #  21/03/16 - v1.0 - First working version
@@ -136,6 +69,62 @@ matrix.tau <- function(t.1, t.2) {
 # (c) Simon Vaughan, University of Leicester
 # -----------------------------------------------------------
 
+#' Compute the Discrete Correlation Function
+#' 
+#' \code{dcf} returns the Discrete Correlation Function estimates.
+#'
+#' \param tau (vector) list of lags at which to compute the CCF.
+#' @inheritParams cross.correlate
+#'
+#' @return
+#' A data frame containing columns:
+#'  \item{tau}{the centre of the lag bins (vector)}
+#'  \item{ccf}{the correlation coefficent in each lag bin}
+#'  \item{n}{the number of data point pairs included in each lag bin}
+#'
+#' @section Notes:
+#' Input are two time series (data frames with columns: \code{t, y, dy}
+#' [optional]) Output is the correlation coefficient \code{ccf[i]} in different
+#' lag bins \code{tau[i]}.
+#'
+#' In what follows we refer to the \code{t, y} values of time series 1
+#' (\code{ts.1}) as \code{t.1, y.1}, and similarly for time series 2.
+#' 
+#' We first subtract the mean values from \code{y.1} and \code{y.2}. Then, 
+#' within the \code{i}th lag bin (\code{tau[i] - dtau/2}, \code{tau[i] +
+#' dtau/2}) we collect all pairs (\code{y.1, y.2}) of data for which \code{t.1 -
+#' t.2} falls within the lag bin. Using these pairs of data we compute the sum
+#' of their product and normalise it:
+#' 
+#' \code{cov[i] = (1/n) * sum_{j,k=1..n} (y.1[j] * y.2[k])}
+#' 
+#' Here, \code{j, k} are index arrays of length \code{n} that specify the points
+#' of time series 1 and 2 (respectively) which pair-up within lag bin \code{i}. 
+#' This gives a covariance. If \code{cov = TRUE} we keep these values. Otherwise
+#' (default: \code{cov = FALSE}) we normalise by the product of the standard 
+#' deviations of \code{y.1} and \code{y.2}.
+#' 
+#' The number of output lags \code{tau} is \code{2*lag.bins+1}, and the lags are
+#' centred on zero. So they run from \code{-max.lag} to \code{+max.lag}. Any lag
+#' bins containing fewer than min.pts pairs of points will have \code{ccf = NA}.
+#'
+#' If 'errors' are suppled for either or both time series (dx.1, dx.2) 
+#' and \code{use.errors = TRUE} then the variance used 
+#' in the denominator terms of correlation coefficient calculation will be
+#' the 'excess variance', i.e. the total sample variance minus the 
+#' mean square error. If dy.1 and/or dy.2 are a single number, this is 
+#' assumed to be the same error for each data point. If \code{use.errors = FALSE}
+#' (default) then the usual sample variance will be used.
+#' 
+#' @seealso \code{\link{cross.correlate}}, \code{\link{iccf}}
+
+#' @examples 
+#' ## Example using NGC 5548 data
+#' res <- dcf(cont, hbeta, tau = seq(-200, 200, by = 5))
+#' plot(res$tau, res$ccf, type = "l", col = "blue", lwd = 3, bty = "n")
+#' grid()
+#' 
+#' @export
 dcf <- function(ts.1, ts.2, 
                 tau= NULL,
                 min.pts = 5,
@@ -295,7 +284,7 @@ dcf <- function(ts.1, ts.2,
   if (chatter > 0) {
     r.max <- max(abs(dcf), na.rm = TRUE)
     if (r.max > 1 & cov == FALSE)
-      warning(paste('CCF outside of (-1,+1): ', r.max))
+      warning(paste('CCF outside of (-1, +1): ', r.max))
   }
   
   # return final output

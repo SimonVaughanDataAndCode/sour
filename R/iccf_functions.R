@@ -1,40 +1,5 @@
 # --------------------------------------------------
-# NAME: 
-#     iccf
-#
-# PURPOSE:
-#     Estimate a cross correlation between two time series
-#
-# AUTHOR:
-#     Simon Vaughan
-#
-# CALLING SEQUENCE:
-#     r <- iccf(ts.1, ts.2, tau)
-#
-# INPUTS:
-#   ts.1      - (data frame) times series 1, contains t, y.
-#   ts.2      - (data frame) times series 2, contains t, y.
-#   tau       - list of lags
-#   cov       - compute covariances rather than correlations (default: FALSE)
-#   chatter   - (integer) level of information reported while running
-#
-# Value:
-#   result    - a data frame containing columns...
-#      tau    - the centre of the lag bins (vector)
-#      ccf    - the correlation coefficent in each lag bin
-#
-# DETAILS:
-#
-# Given two time series x.1 and x.2 sampled at time t.1 and t.2
-# we estimate a cross correlation function (CCF) by interpolating
-# (t.2, y.2). For a lag tau we estimate y.2 at each time t.1+tau
-# by interpolating between the two nearest points of y.2. We then
-# pair the values y.1 with the corresponding lagged values of y.2
-# and compute the linear correlation coefficient, r. We repeat this
-# for a range of lags and plot r vs. tau.
-#
-# The interpolation is handled by the approx() function
-# for linear interpolation.
+# iccf
 #
 # History:
 #  21/03/16 - v1.0 - First working version
@@ -46,6 +11,40 @@
 # (c) Simon Vaughan, University of Leicester
 # -----------------------------------------------------------
 
+#' Estimate a cross correlation between two time series
+#' 
+#' \code{iccf} returns the Interpolated Cross-Correlation Function estimates.
+#'
+#' @param tau (vector) list of lags at which to compute the CCF.
+#' @inheritParams cross.correlate
+#'
+#' @return
+#' A data frame containing columns:
+#'  \item{tau}{lags (in time units)}
+#'  \item{ccf}{correlations coefficent in each lag bin}
+#'
+#' @section Notes:
+#' In what follows we refer to the \code{t, y} values of time series 1 
+#' (\code{ts.1}) as \code{t.1, y.1}, and similarly for time series 2.
+#' 
+#' Given two time series \code{y.1} and \code{y.2}, sampled at times \code{t.1}
+#' and \code{t.2}, we estimate a cross correlation function (CCF) by 
+#' interpolating (\code{t.2, y.2}). For a lag \code{tau} we estimate \code{y.2} 
+#' at each time \code{t.1+tau} by interpolating between the two nearest points 
+#' of \code{y.2}. We then pair the values \code{y.1} with the corresponding 
+#' lagged values of \code{y.2} and compute the linear correlation coefficient, 
+#' \code{ccf}. The interpolation is handled by the \code{approx} function for
+#' linear interpolation.
+#' 
+#' @seealso \code{\link{cross.correlate}}, \code{\link{dcf}}, \code{\link[stats]{approx}}
+#' 
+#' @examples 
+#' ## Example using NGC 5548 data
+#' res <- iccf(cont, hbeta, tau = seq(-100, 100))
+#' plot(res$tau, res$ccf, type = "l", col = "blue", lwd = 3, bty = "n")
+#' grid()
+#' 
+#' @export
 iccf <- function(ts.1, ts.2, 
                  tau = NULL,
                  local.est = FALSE,
@@ -76,7 +75,7 @@ iccf <- function(ts.1, ts.2,
   lag.bins <- as.integer(n.tau - 1)/2
   dtau <- diff(tau[1:2])
   
-  # main calculation
+  # main calculation (using iccf.core function)
   iccf.ij <- iccf.core(t.1, x.1, t.2, x.2, tau, local.est = local.est, cov = cov)
   r.ij <- iccf.ij$r
   if (one.way == FALSE) {
@@ -117,6 +116,8 @@ iccf <- function(ts.1, ts.2,
 # number of good pairs at lag tau[i], and the sqrt(vars) of just the 
 # x.1 and x.2 data points involved.
 # We assume x.1 and x.2 have zero sample mean.
+
+#' Compute the one-way Interpolated Cross-Correlation Function (ICCF)
 
 iccf.core <- function(t.1, x.1, 
                       t.2, x.2, 

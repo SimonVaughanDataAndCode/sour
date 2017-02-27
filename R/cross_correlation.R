@@ -47,35 +47,8 @@
 #'  strong peak at negative lags indicates the \code{ts.1} leads \code{ts.2}.
 #'  
 #' @section Notes:
-#' In what follows we refer to the \code{t, y} values of time series 1
-#' (\code{ts.1}) as \code{t.1, y.1}, and similarly for time series 2.
-#' 
-#' ICCF: Given two time series \code{y.1} and \code{y.2} sampled at time
-#' \code{t.1} and \code{t.2} we estimate a cross correlation function (CCF) by
-#' interpolating (\code{t.2, y.2}). For a lag \code{tau} we estimate \code{y.2}
-#' at each time \code{t.1+tau} by interpolating between the two nearest points
-#' of \code{y.2}. We then pair the values \code{y.1} with the corresponding
-#' lagged values of \code{y.2} and compute the linear correlation coefficient,
-#' \code{ccf}. The interpolation is handled by the approx() function for linear
-#' interpolation.
-#'  
-#' DCF: We first subtract the mean values from \code{y.1} and \code{y.2}. Then, 
-#' within the \code{i}th lag bin (\code{tau[i] - dtau/2}, \code{tau[i] +
-#' dtau/2}) we collect all pairs (\code{y.1, y.2}) of data for which \code{t.1 -
-#' t.2} falls within the lag bin. Using these pairs of data we compute the sum
-#' of their product and normalise it:
-#' 
-#' \code{cov[i] = (1/n) * sum_k (y.1[j] * y.2[k])}
-#' 
-#' Here, \code{j, k} are index arrays of length \code{n} that specify the points
-#' of time series 1 and 2 (respectively) which pair-up within lag bin \code{i}. 
-#' This gives a covariance. If \code{cov = TRUE} we keep these values. Otherwise
-#' (default: \code{cov = FALSE}) we normalise by the product of the standard 
-#' deviations of \code{y.1} and \code{y.2}.
-#' 
-#' The number of output lags \code{tau} is \code{2*lag.bins+1}, and the lags are
-#' centred on zero. So they run from \code{-max.lag} to \code{+max.lag}. Any lag
-#' bins containing fewer than min.pts pairs of points will have \code{ccf = NA}.
+#' If only one time series is given as input then the Auto-Correlation Function
+#' (ACF) is computed.
 #' 
 #' Local vs. global estimation: If \code{local.est = FALSE} (default) then the
 #' correlation coefficient is computed sing the 'global' mean and variance of
@@ -86,11 +59,10 @@
 #' 
 #' Simulations: Performs "flux randomisation" and "random sample selection" of 
 #' an input time series, following Peterson et al. (2004, ApJ, 613:682-699).
-#' 
 #' Given an input data series \code{(t, y, dy)} of length \code{N} we sample 
-#' \code{N} points with replacement. Duplicated points are ignored, so the
-#' ouptut is usually shorter than the input. So far this is a basic bootstrap
-#' procedure. 
+#' \code{N} points with replacement. Duplicated points are ignored, so the 
+#' ouptut is usually shorter than the input. So far this is a basic bootstrap 
+#' procedure.
 #' 
 #' If error bars are provided: when a point is selected \code{m} times, we
 #' decrease the error by \code{1/sqrt(m)}. See Appendix A of Peterson et al. And
@@ -109,10 +81,10 @@
 #' method of Barlett (1955) based on the two ACFs. If simulations are used, the
 #' confidence limits are based on the simulations.
 #' 
-#' @seealso \code{\link[stats]{ccf}}
+#' @seealso \code{\link[stats]{ccf}}, \code{\link{fr.rss}}
 #' 
 #' @examples 
-#'  # Example using NGC 5548 data
+#'  ## Example using NGC 5548 data
 #'  result <- cross.correlate(cont, hbeta, method = "iccf", dtau = 1, max.lag = 550)
 #'  plot(result$tau, result$ccf, type = "l", bty = "n", xlab = "time delay", ylab = "CCF")
 #'  grid()
@@ -330,43 +302,58 @@ cross.correlate <- function(ts.1, ts.2,
 
 # -----------------------------------------------------------
 # fr.rss
-# Inputs: 
-#   ts.1      - data frame containing times (1st column)
-#                and values (2nd column) for data series.
-#                Contains optional errors (3rd column).
-#
-# Value:
-#   result   - a data frame containing columns
-#      t     - time bins for randomised data
-#      x     - values for randomised data
-#     dx     - errors for randomised data
-#
-# Description:
-#  Performs "flux randomisation" and "random sample selection"
-# of an input time series, following 
-# Peterson et al. (2004, ApJ, 613:682-699).
-#
-# Given an input data series (t, x, dx) of length N we sample
-# N points with replacement. Duplicated points are ignored, so 
-# the ouptut is usually shorter than the input. So far this is
-# a basic bootstrap procedure.
-#
-# If error bars are provided: when a point is selected m times, 
-# we decrease the error by 1/sqrt(m). See Appendix A of Peterson et al. 
-# And after resampling in time, we then add a random Gaussian deviate
-# to each remaining data point, with std.dev equal to its error bar.
-# In this way both the times and values are randomised.
-#
-# If errors bars are not provided, this is a simple bootstrap.
-#
-# The output is another data frame of (t, y, dy)
-#
 # History:
 #  21/03/16 - First working version
 #
 # (c) Simon Vaughan, University of Leicester
 # -----------------------------------------------------------
 
+#' Perform flux randomisation/random subset section on input data.
+#' 
+#' \code{fr.rss} returns a randomise version of an input data array.
+#' 
+#' Performs "flux randomisation" and "random sample selection"
+#' of an input time series, following Peterson et al. (2004, ApJ, v613, pp682-699).
+#' This is essentially a bootstrap for a data vector.
+#' 
+#' @param dat (data frame) containing columns \code{t, y} and (optionally) 
+#'            \code{dy}.
+#'
+#' @return
+#'  A data frame containing columns
+#'  \item{t}{time bins for randomised data}
+#'  \item{y}{values for randomised data}
+#'  \item{dy}{errors for randomised data}
+#'
+#' @section Notes:
+#' Given an input data series (\code{t, y, dy}) of length \code{N} we sample 
+#' \code{N} points with replacement. Duplicated points are ignored, so the
+#' ouptut is usually shorter than the input. So far this is a basic bootstrap
+#' procedure.
+#' 
+#' If error bars are provided: when a point is selected \code{m} times, we
+#' decrease the error, scaling by \code{1/sqrt(m)}. See Appendix A of Peterson
+#' et al. After resampling, we then add a random Gaussian deviate to each
+#' remaining data point, with std.dev equal to its (new) error bar. If errors
+#' bars are not provided, this is a simple bootstrap (no randomisation of
+#' \code{y}).
+#' 
+#' @seealso \code{\link{cross.correlate}}, \code{\link{ccf.errors}} 
+#' 
+#' @examples 
+#'  ## Example using the NGC 5548 data
+#'  plot(cont$t, cont$y, type="l", bty = "n", xlim = c(50500, 52000))
+#'  rcont <- fr.rss(cont)
+#'  lines(rcont$t, rcont$y, col = "red")
+#' 
+#'  ## Examples from Venables & Ripley
+#'  require(graphics)
+#'  plot(fdeaths, bty = "n")
+#'  tsf <- data.frame(t = time(fdeaths), y = fdeaths)
+#'  rtsf <- fr.rss(tsf)
+#'  lines(rtsf$t, rtsf$y, col="red", type="o")
+#'
+#' @export
 fr.rss <- function(dat) {
   
   # check arguments
@@ -429,55 +416,6 @@ fr.rss <- function(dat) {
 
 # -----------------------------------------------------------
 # ccf.errors
-# Inputs: 
-#   ts.1      - data frame containing times (t)
-#                and values (y) for data series 1.
-#                Contains optional errors (3rd column).
-#   ts.2      - data frame for data series 2
-#   tau       - list of lags
-#   min.pts   - set to NA any lag bins with fewer points (default: 10)
-#   local.est - use 'local' (not 'global') means and variances?
-#   prob      - probability level to use for confidence intervals
-#   nsim      - number of simulations
-#   peak.frac - what fraction below peak to include in centroid measurements?
-#   zero.clip - remove pairs of points with exactly zero lag? 
-#   method    - use DCF or ICCF method (default: dcf)
-#   use.errors - TRUE/FALSE passed to dcf() 
-#   local.est  - TRUE/FALSE passed to dcf() or iccf()
-#   acf.flag  - TRUE if computing ACF and ts.2 = ts.1
-#
-# Value:
-#   result    - a data frame containing columns...
-#      tau    - the centre of the lag bins (vector)
-#      dcf    - the correlation coefficent in each lag bin
-#
-# Description:
-#  Compute the Discrete Correlation Function based on method 
-# outlined in Edelson & Korlik (1998, ApJ). 
-# This is a way to estimate the CCF for a pair of time series
-# (t.1, x.1) and (t.2, x.2) when the time sampling is uneven
-# and non-synchronous. See dcf(...) function.
-#
-# Computes errors on the DCF values using "flux randomisation" 
-# and "random subset sampling" FR/RSS using the fr.rss(...) function.
-#
-# For each randomised pair of light curves we compute the DCF. 
-# We record the DCF, the lag at the peak, and the centroid lag
-# (including only points higher than peak.frac * peak).
-# Using nsim simulations we compute the (1-p)*100% confidence
-# intervals on the DCF values, and the distribution of peaks
-# and centroids.
-#
-# The output is a list containing two components
-#    lags     - a data frame with four columns
-#    tau      - time lags
-#    dcf      - the DCF values for the input data
-#    lower    - the lower limit of the confidence interval
-#    upper    - the upper limit of the confidence interval
-#    dists    - a data frame with two columns
-#    peak.lag - the peak values from nsim simulations
-#    cent.lag - the centroid values from nsim simulations
-#
 # History:
 #  21/03/16 - v1.0 - First working version
 #  05/04/16 - v1.1 - added na.rm option to strip out non-finite values
@@ -489,20 +427,52 @@ fr.rss <- function(dat) {
 # (c) Simon Vaughan, University of Leicester
 # -----------------------------------------------------------
 
+#' Use random simulations to estimate undertainty on CCF estimates.
+#' 
+#' \code{ccf.errors} returns information on the undertainty on CCF estimates.
+#'
+#' Computes errors on the CCF estimates using "flux randomisation" 
+#' and "random subset sampling" FR/RSS using the \code{fr.rss} function.
+#'
+#' @param tau (array) list of lags at which the CCF is to be evaluated.
+#' @param acf.flag (TRUE)logical) \code{TRUE} when computing ACF, and \code{ts.2 = ts.1}
+#' @inheritParams cross.correlate
+#'
+#' @return 
+#' The output is a list containing two data frames: \code{lags} and \code{dists}.
+#'    \item{lags}{a data frame with four columns}
+#'    \item{tau}{time lags}
+#'    \item{dcf}{the DCF values for the input data}
+#'    \item{lower}{the lower limit of the confidence interval}
+#'    \item{upper}{the upper limit of the confidence interval}
+#'    \item{dists}{a data frame with two columns}
+#'    \item{peak.lag}{the peak values from nsim simulations}
+#'    \item{cent.lag}{the centroid values from nsim simulations}
+#'
+#' @section Notes:
+#' For each randomised pair of light curves we compute the CCF. We record the
+#' CCF, the lag at the peak, and the centroid lag (including only points higher
+#' than \code{peak.frac * max(ccf)}). Using \code{nsim} simulations we compute
+#' the \code{(1-p)*100\%} confidence intervals on the CCF values, and the
+#' distribution of the peaks and centroids.
+#'
+#' @seealso \code{\link{cross.correlate}}, \code{\link{fr.rss}} 
+#'
+#' @export
 ccf.errors <- function(ts.1, ts.2, 
                        tau = NULL,
-                       min.pts=5,
-                       local.est=FALSE,
-                       cov=FALSE,
-                       prob=0.1, 
-                       nsim=250,
-                       peak.frac=0.8,
-                       zero.clip=NULL,
-                       one.way=FALSE,
-                       method="dcf",
-                       use.errors=FALSE,
-                       acf.flag=FALSE,
-                       chatter=0) {
+                       min.pts = 5,
+                       local.est = FALSE,
+                       cov = FALSE,
+                       prob = 0.1, 
+                       nsim = 250,
+                       peak.frac = 0.8,
+                       zero.clip = NULL,
+                       one.way = FALSE,
+                       method = "iccf",
+                       use.errors = FALSE,
+                       acf.flag = FALSE,
+                       chatter = 0) {
 
   # check arguments
   if (missing(ts.1)) stop('Missing ts.1 data frame.')

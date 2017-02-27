@@ -10,9 +10,7 @@ cross.correlate(ts.1, ts.2, method = "iccf", max.lag = NULL, min.pts = 5,
   chatter = 0, plot = FALSE, ...)
 }
 \arguments{
-\item{ts.1}{(array or dataframe) data for time series 1.}
-
-\item{ts.2}{(array or dataframe) data for time series 2.}
+\item{ts.1, ts.2}{(array or dataframe) data for time series 1 and 2.}
 
 \item{method}{(string) use \code{"dcf"} or \code{"iccf"} (default).}
 
@@ -69,35 +67,8 @@ Selection (FR/RSS) method of Peterson et al. (1998).
 }
 \section{Notes}{
 
-In what follows we refer to the \code{y} values of time series 1
-(\code{ts.1}) as \code{y.1}, and similarly for time series 2.
-
-ICCF: Given two time series \code{y.1} and \code{y.2} sampled at time
-\code{t.1} and \code{t.2} we estimate a cross correlation function (CCF) by
-interpolating (\code{t.2, y.2}). For a lag \code{tau} we estimate \code{y.2}
-at each time \code{t.1+tau} by interpolating between the two nearest points
-of \code{y.2}. We then pair the values \code{y.1} with the corresponding
-lagged values of \code{y.2} and compute the linear correlation coefficient,
-\code{ccf}. The interpolation is handled by the approx() function for linear
-interpolation.
- 
-DCF: We first subtract the mean values from \code{y.1} and \code{y.2}. Then, 
-within the \code{i}th lag bin (\code{tau[i] - dtau/2}, \code{tau[i] +
-dtau/2}) we collect all pairs (\code{y.1, y.2}) of data for which \code{t.1 -
-t.2} falls within the lag bin. Using these pairs of data we compute the sum
-of their product and normalise it:
-
-\code{cov[i] = (1/n) * sum_k (y.1[j] * y.2[k])}
-
-Here, \code{j, k} are index arrays of length \code{n} that specify the points
-of time series 1 and 2 (respectively) which pair-up within lag bin \code{i}. 
-This gives a covariance. If \code{cov = TRUE} we keep these values. Otherwise
-(default: \code{cov = FALSE}) we normalise by the product of the standard 
-deviations of \code{y.1} and \code{y.2}.
-
-The number of output lags \code{tau} is \code{2*lag.bins+1}, and the lags are
-centred on zero. So they run from \code{-max.lag} to \code{+max.lag}. Any lag
-bins containing fewer than min.pts pairs of points will have \code{ccf = NA}.
+If only one time series is given as input then the Auto-Correlation Function
+(ACF) is computed.
 
 Local vs. global estimation: If \code{local.est = FALSE} (default) then the
 correlation coefficient is computed sing the 'global' mean and variance of
@@ -108,11 +79,10 @@ contributing to that lag.
 
 Simulations: Performs "flux randomisation" and "random sample selection" of 
 an input time series, following Peterson et al. (2004, ApJ, 613:682-699).
-
 Given an input data series \code{(t, y, dy)} of length \code{N} we sample 
-\code{N} points with replacement. Duplicated points are ignored, so the
-ouptut is usually shorter than the input. So far this is a basic bootstrap
-procedure. 
+\code{N} points with replacement. Duplicated points are ignored, so the 
+ouptut is usually shorter than the input. So far this is a basic bootstrap 
+procedure.
 
 If error bars are provided: when a point is selected \code{m} times, we
 decrease the error by \code{1/sqrt(m)}. See Appendix A of Peterson et al. And
@@ -133,7 +103,7 @@ confidence limits are based on the simulations.
 }
 
 \examples{
- # Example using NGC 5548 data
+ ## Example using NGC 5548 data
  result <- cross.correlate(cont, hbeta, method = "iccf", dtau = 1, max.lag = 550)
  plot(result$tau, result$ccf, type = "l", bty = "n", xlab = "time delay", ylab = "CCF")
  grid()
@@ -152,5 +122,5 @@ confidence limits are based on the simulations.
 
 }
 \seealso{
-\code{\link[stats]{ccf}}
+\code{\link[stats]{ccf}}, \code{\link{fr.rss}}
 }
