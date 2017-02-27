@@ -95,4 +95,4 @@ For more info on the methods see:
 If you make use of this code in your work, please do cite the following paper,
 which first used the package, and for which sour was originally developed.
 
-R. Edelson, J. Gelbord, E. Cackett, et al. (2017, ApJ, in press
+R. Edelson, J. Gelbord, E. Cackett, et al. (2017, ApJ, in press)
