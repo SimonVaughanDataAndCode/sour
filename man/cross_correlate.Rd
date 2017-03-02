@@ -107,6 +107,10 @@ confidence limits are based on the simulations.
  result <- cross_correlate(cont, hbeta, method = "iccf", dtau = 1, max.lag = 550)
  plot(result$tau, result$ccf, type = "l", bty = "n", xlab = "time delay", ylab = "CCF")
  grid()
+ 
+ ## or using the DCF method
+ result <- cross_correlate(cont, hbeta, method = "dcf", dtau = 5, max.lag = 350)
+ lines(result$tau, result$ccf, col = "red")
 
  ## Examples from Venables & Ripley
  require(graphics)

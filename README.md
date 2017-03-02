@@ -39,7 +39,7 @@ Watch](http://www.astronomy.ohio-state.edu/~agnwatch/n5548/lcv/).
 We can compute the CCF, using the ICCF method, as follows:
 
 ```R
-  result <- sour::cross_correlate(cont, hbeta, method = "iccf", dtau = 1, max.lag = 550)
+  result <- sour::cross_correlate(cont, hbeta, dtau = 1, max.lag = 550)
   plot(result$tau, result$ccf, type = "l", bty = "n", xlab = "time delay", ylab = "CCF")
   grid()
 ```
@@ -48,19 +48,18 @@ We can compute the CCF, using the ICCF method, as follows:
 
 The CCF peak at around -20 days indicates the Hbeta lags behind the continuum.
 
-Then we (optionally) use simulations to assess the centroid of the CCF near 
-its peak.
+We can choose to use simulations to assess the centroid of the CCF near its peak.
 
 ```R
-  result <- sour:cross_correlate(cont, hbeta, method = "iccf", local.est = TRUE, dtau = 1, nsim = 2000, max.lag = 120)
+  result <- sour::cross_correlate(cont, hbeta, method = "iccf", local.est = TRUE, dtau = 1, nsim = 2000, max.lag = 120)
   hist(result$cent.dist, breaks = 50, col = "steelblue1", main = "", border = NA, prob = TRUE, xlab = "centroid delay (day)")
 ```
 
-Here, the time is in units of days. We chose the width for the lag bins (dtau =
-1.0), the maximum lag to examine (-120.0 to +120.0) is set using max.lag, and we
-used nsim = 2,000 simulations to estimate the centroid distribution. Setting
-local.est = TRUE means that the mean and variances are computed using only pairs
-of data contributing to a given lag bin.
+Here, the time is in units of days. We choose the width for the lag bins (dtau =
+1.0), the maximum lag to examine (max.lag = 120.0), and the number of
+simulations to use (nsim = 2000) when estimating the centroid distribution.
+Setting local.est = TRUE means that the mean and variances are computed using
+only pairs of data contributing to a given lag bin.
 
 ![example](figures/centroid_dist.png)
 
@@ -74,6 +73,7 @@ We can use these simulations to place intervals on the lag. Here we show the qua
 
 ## To do:
  * Bring interpolation outside of main loop (in iccf.core) for speed
+ * understand why max|DCF| > 1 occurs 
  * proper unit tests
 
 ## References
