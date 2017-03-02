@@ -126,6 +126,7 @@ iccf <- function(ts.1, ts.2,
 #' @param t.1,x.1 time and value for time series 1
 #' @param t.2,x.2 time and value for time series 2
 #' @inheritParams cross_correlate
+#' @inheritParams iccf
 #' 
 #' @return 
 #'  A list with components

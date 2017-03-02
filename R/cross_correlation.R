@@ -19,7 +19,7 @@
 #' 
 #' @param ts.1,ts.2    (array or dataframe) data for time series 1 and 2.
 #' @param method       (string) use \code{"dcf"} or \code{"iccf"} (default).
-#' @param lag.max      (float) maximum lag at which to compute the CCF.
+#' @param max.lag      (float) maximum lag at which to compute the CCF.
 #' @param min.pts      (integer) each DCF bin must contain at least \code{min.pts} correlation coefficients.
 #' @param dtau         (float) spacing of the time delays (\code{tau}) which which CCF is estimated.
 #' @param local.est    (logical) use 'local' (not 'global') means and variances?
