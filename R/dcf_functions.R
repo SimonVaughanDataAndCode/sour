@@ -125,7 +125,7 @@ matrix_tau <- function(x, y) {
 #' 
 #' @export
 dcf <- function(ts.1, ts.2, 
-                tau= NULL,
+                tau = NULL,
                 min.pts = 5,
                 local.est = FALSE,
                 zero.clip = NULL,

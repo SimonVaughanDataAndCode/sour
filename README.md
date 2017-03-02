@@ -39,7 +39,7 @@ Watch](http://www.astronomy.ohio-state.edu/~agnwatch/n5548/lcv/).
 We can compute the CCF, using the ICCF method, as follows:
 
 ```R
-  result <- sour::cross.correlate(cont, hbeta, method = "iccf", dtau = 1, max.lag = 550)
+  result <- sour::cross_correlate(cont, hbeta, method = "iccf", dtau = 1, max.lag = 550)
   plot(result$tau, result$ccf, type = "l", bty = "n", xlab = "time delay", ylab = "CCF")
   grid()
 ```
@@ -52,7 +52,7 @@ Then we (optionally) use simulations to assess the centroid of the CCF near
 its peak.
 
 ```R
-  result <- sour:cross.correlate(cont, hbeta, method = "iccf", local.est = TRUE, dtau = 1, nsim = 2000, max.lag = 120)
+  result <- sour:cross_correlate(cont, hbeta, method = "iccf", local.est = TRUE, dtau = 1, nsim = 2000, max.lag = 120)
   hist(result$cent.dist, breaks = 50, col = "steelblue1", main = "", border = NA, prob = TRUE, xlab = "centroid delay (day)")
 ```
 

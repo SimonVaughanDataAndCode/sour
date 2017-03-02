@@ -251,10 +251,9 @@ cross_correlate <- function(ts.1, ts.2,
                    local.est = local.est, 
                    min.pts = min.pts, 
                    chatter = chatter, cov = cov)
-      acf.2 <- dcf(ts.2, ts.2,  
+      acf.2 <- dcf(ts.2, ts.2, tau,
                    local.est = local.est, 
-                   min.pts = min.pts, dtau = dtau,
-                   max.lag = max.lag, lag.bins = lag.bins, 
+                   min.pts = min.pts, 
                    chatter = chatter, cov = cov)
     } else {
       acf.1 <- iccf(ts.1, ts.1, tau, 

@@ -208,6 +208,6 @@ iccf_core <- function(t.1, x.1,
   }
   
   # return vector of coefficients 
-  return(list(r=r.ij, n=n.ij))
-  
+  #return(list(r=r.ij, n=n.ij))
+  return(data.frame(r=r.ij, n=n.ij))
 }
