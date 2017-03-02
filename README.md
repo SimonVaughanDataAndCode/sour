@@ -2,7 +2,11 @@
 Functions for cross correlation of unevenly sampled time series.
 
 Sour is an R package for estimating the cross-correlation between
-two time series which may be irregularly and/or non-simultaneously sampled. The
+two time series which may be irregularly and/or non-simultaneously sampled. It
+is also a cocktail: 
+![example](figs/Whiskey-Sour-Icon.png))
+
+The
 CCF is computed using one of two methods: (1) the Discrete Correlation Function
 (DCF; Edelson & Krolik 1988) or (2) the Interpolated Cross Correlation Function
 (ICCF; Gaskell & Sparke 1986). You can also produce estimates of uncertainty on
@@ -72,7 +76,7 @@ We can use these simulations to place intervals on the lag. Here we show the qua
 ```
 
 ## To do:
- * Bring interpolation outside of main loop (in iccf.core) for speed
+ * Bring interpolation outside of main loop (in iccf_core) for speed
  * understand why max|DCF| > 1 occurs 
  * proper unit tests
 
