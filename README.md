@@ -4,7 +4,7 @@ Functions for cross correlation of unevenly sampled time series.
 Sour is an R package for estimating the cross-correlation between
 two time series which may be irregularly and/or non-simultaneously sampled. It
 is also a cocktail: 
-![example](figs/Whiskey-Sour-Icon.png))
+![example](figs/Whiskey-Sour-icon.png))
 
 The
 CCF is computed using one of two methods: (1) the Discrete Correlation Function
