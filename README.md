@@ -19,18 +19,15 @@ Now you can install sour straight from GitHub:
 ```R
    devtools::install_github("svdataman/sour")
 ```
-Now, load into your R session with
-```R
-   require(sour)
-```
 and you're good to go.
 
-## Example
+## Example data
 
 The package comes with an example dataset. The data comprise two time series cont and hbeta. Each series is an array or data frame with columns t, y (and optionally) dy. 
 ```R
   plot(cont$t, cont$y, bty = "n", type = "o", xlab = "time (day)", ylab = "flux")
   lines(hbeta$t, hbeta$y, type = "o", col = "red")
+  grid()
 ```
 
 ![example](figures/ngc5548_data.png)
@@ -42,7 +39,7 @@ Watch](http://www.astronomy.ohio-state.edu/~agnwatch/n5548/lcv/).
 We can compute the CCF, using the ICCF method, as follows:
 
 ```R
-  result <- cross.correlate(cont, hbeta, method = "iccf", dtau = 1, max.lag = 550)
+  result <- sour::cross.correlate(cont, hbeta, method = "iccf", dtau = 1, max.lag = 550)
   plot(result$tau, result$ccf, type = "l", bty = "n", xlab = "time delay", ylab = "CCF")
   grid()
 ```
@@ -55,7 +52,7 @@ Then we (optionally) use simulations to assess the centroid of the CCF near
 its peak.
 
 ```R
-  result <- cross.correlate(cont, hbeta, method = "iccf", local.est = TRUE, dtau = 1, nsim = 2000, max.lag = 120)
+  result <- sour:cross.correlate(cont, hbeta, method = "iccf", local.est = TRUE, dtau = 1, nsim = 2000, max.lag = 120)
   hist(result$cent.dist, breaks = 50, col = "steelblue1", main = "", border = NA, prob = TRUE, xlab = "centroid delay (day)")
 ```
 

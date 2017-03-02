@@ -56,5 +56,5 @@ grid()
 
 }
 \seealso{
-\code{\link{cross.correlate}}, \code{\link{dcf}}, \code{\link[stats]{approx}}
+\code{\link{cross_correlate}}, \code{\link{dcf}}, \code{\link[stats]{approx}}
 }

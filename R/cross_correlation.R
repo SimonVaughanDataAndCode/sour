@@ -7,7 +7,7 @@
 
 #' Estimate cross correlation of unevenly sampled time series.
 #' 
-#' \code{cross.correlate} returns cross correlation data for two times series.
+#' \code{cross_correlate} returns cross correlation data for two times series.
 #' 
 #' Function for estimating the cross-correlation between two time series which
 #' may be irregularly and/or non-simultaneously sampled. The CCF is computed
@@ -81,11 +81,11 @@
 #' method of Barlett (1955) based on the two ACFs. If simulations are used, the
 #' confidence limits are based on the simulations.
 #' 
-#' @seealso \code{\link[stats]{ccf}}, \code{\link{fr.rss}}
+#' @seealso \code{\link[stats]{ccf}}, \code{\link{fr_rss}}
 #' 
 #' @examples 
 #'  ## Example using NGC 5548 data
-#'  result <- cross.correlate(cont, hbeta, method = "iccf", dtau = 1, max.lag = 550)
+#'  result <- cross_correlate(cont, hbeta, method = "iccf", dtau = 1, max.lag = 550)
 #'  plot(result$tau, result$ccf, type = "l", bty = "n", xlab = "time delay", ylab = "CCF")
 #'  grid()
 #'
@@ -95,14 +95,14 @@
 #'  tsm <- data.frame(t = time(mdeaths), y = mdeaths)
 #' 
 #'  ## compute CCF using ICCF method
-#'  result <- cross.correlate(tsm, tsf, plot = TRUE, method = "iccf")
+#'  result <- cross_correlate(tsm, tsf, plot = TRUE, method = "iccf")
 #' 
 #'  ## compute CCF using standard method (stats package) and compare
 #'  result.st <- ccf(mdeaths, fdeaths, plot = FALSE)
 #'  lines(result.st$lag, result.st$acf, col="red", lwd = 3)
 #' 
 #' @export
-cross.correlate <- function(ts.1, ts.2,
+cross_correlate <- function(ts.1, ts.2,
                             method = "iccf",
                             max.lag = NULL, 
                             min.pts = 5,
@@ -233,7 +233,7 @@ cross.correlate <- function(ts.1, ts.2,
     if (nsim < 2/max(prob)) stop('Not enough simulations. Make nsim or prob larger.')
         
     # run some simulations
-    sims <- ccf.errors(ts.1, ts.2, tau, nsim = nsim,
+    sims <- ccf_errors(ts.1, ts.2, tau, nsim = nsim,
                      method = method, peak.frac = peak.frac, min.pts = min.pts,
                      local.est = local.est, zero.clip = zero.clip, prob = prob,
                      cov = cov, chatter = chatter, acf.flag = acf.flag, 
@@ -301,7 +301,7 @@ cross.correlate <- function(ts.1, ts.2,
 
 
 # -----------------------------------------------------------
-# fr.rss
+# fr_rss
 # History:
 #  21/03/16 - First working version
 #
@@ -310,7 +310,7 @@ cross.correlate <- function(ts.1, ts.2,
 
 #' Perform flux randomisation/random subset section on input data.
 #' 
-#' \code{fr.rss} returns a randomise version of an input data array.
+#' \code{fr_rss} returns a randomise version of an input data array.
 #' 
 #' Performs "flux randomisation" and "random sample selection"
 #' of an input time series, following Peterson et al. (2004, ApJ, v613, pp682-699).
@@ -338,23 +338,23 @@ cross.correlate <- function(ts.1, ts.2,
 #' bars are not provided, this is a simple bootstrap (no randomisation of
 #' \code{y}).
 #' 
-#' @seealso \code{\link{cross.correlate}}, \code{\link{ccf.errors}} 
+#' @seealso \code{\link{cross_correlate}}, \code{\link{ccf_errors}} 
 #' 
 #' @examples 
 #'  ## Example using the NGC 5548 data
 #'  plot(cont$t, cont$y, type="l", bty = "n", xlim = c(50500, 52000))
-#'  rcont <- fr.rss(cont)
+#'  rcont <- fr_rss(cont)
 #'  lines(rcont$t, rcont$y, col = "red")
 #' 
 #'  ## Examples from Venables & Ripley
 #'  require(graphics)
 #'  plot(fdeaths, bty = "n")
 #'  tsf <- data.frame(t = time(fdeaths), y = fdeaths)
-#'  rtsf <- fr.rss(tsf)
+#'  rtsf <- fr_rss(tsf)
 #'  lines(rtsf$t, rtsf$y, col="red", type="o")
 #'
 #' @export
-fr.rss <- function(dat) {
+fr_rss <- function(dat) {
   
   # check arguments
   if (missing(dat)) stop('Missing DAT argument')
@@ -415,7 +415,7 @@ fr.rss <- function(dat) {
 }
 
 # -----------------------------------------------------------
-# ccf.errors
+# ccf_errors
 # History:
 #  21/03/16 - v1.0 - First working version
 #  05/04/16 - v1.1 - added na.rm option to strip out non-finite values
@@ -429,14 +429,14 @@ fr.rss <- function(dat) {
 
 #' Use random simulations to estimate undertainty on CCF estimates.
 #' 
-#' \code{ccf.errors} returns information on the undertainty on CCF estimates.
+#' \code{ccf_errors} returns information on the undertainty on CCF estimates.
 #'
 #' Computes errors on the CCF estimates using "flux randomisation" 
-#' and "random subset sampling" FR/RSS using the \code{fr.rss} function.
+#' and "random subset sampling" FR/RSS using the \code{fr_rss} function.
 #'
 #' @param tau (array) list of lags at which the CCF is to be evaluated.
 #' @param acf.flag (TRUE)logical) \code{TRUE} when computing ACF, and \code{ts.2 = ts.1}
-#' @inheritParams cross.correlate
+#' @inheritParams cross_correlate
 #'
 #' @return 
 #' The output is a list containing two data frames: \code{lags} and \code{dists}.
@@ -456,10 +456,10 @@ fr.rss <- function(dat) {
 #' the \code{(1-p)*100\%} confidence intervals on the CCF values, and the
 #' distribution of the peaks and centroids.
 #'
-#' @seealso \code{\link{cross.correlate}}, \code{\link{fr.rss}} 
+#' @seealso \code{\link{cross_correlate}}, \code{\link{fr_rss}} 
 #'
 #' @export
-ccf.errors <- function(ts.1, ts.2, 
+ccf_errors <- function(ts.1, ts.2, 
                        tau = NULL,
                        min.pts = 5,
                        local.est = FALSE,
@@ -502,9 +502,9 @@ ccf.errors <- function(ts.1, ts.2,
   for (i in 1:nsim) {
     
     # generate randomised data
-    ts1.sim <- fr.rss(ts.1)
+    ts1.sim <- fr_rss(ts.1)
     if (acf.flag == FALSE) {
-      ts2.sim <- fr.rss(ts.2)
+      ts2.sim <- fr_rss(ts.2)
     } else {
       ts2.sim <- ts1.sim
     }

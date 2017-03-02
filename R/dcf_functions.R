@@ -1,5 +1,5 @@
 # -----------------------------------------------------------
-# matrix.tau
+# matrix_tau
 #
 # History:
 #  21/03/16 - v1.0 - First working version
@@ -10,7 +10,7 @@
 
 #' Compute a matrix of differences given two vectors.
 #' 
-#' \code{matrix.tau} returns a matrix of differences between two vectors.
+#' \code{matrix_tau} returns a matrix of differences between two vectors.
 #' 
 #' Given two vectors - \code{x} (length \code{M}) and \code{y} (length \code{N}) - as 
 #' input, return the \code{N*M} matrix of differences \code{result[i,j] = x[i] - y[j]}.
@@ -30,11 +30,11 @@
 #' symmetric, Toeplitz and circulant.
 #' 
 #' @examples 
-#' result <- matrix.tau(c(1,2,3), c(2,3,4,5,6))
+#' result <- matrix_tau(c(1,2,3), c(2,3,4,5,6))
 #' print(result)
 #' 
 #' @export
-matrix.tau <- function(x, y) {
+matrix_tau <- function(x, y) {
   
   # check arguments
   if (missing(x)) stop('Missing input vector.')
@@ -64,7 +64,7 @@ matrix.tau <- function(x, y) {
 #  11/04/16 - v1.3 - added dtau and chatter input; bug fixes;
 #                     removed na.rm (now automatic)
 #  24/07/16 - v1.4 - moved most checks and tau calculation to the 
-#                     main cross.correlation function.
+#                     main cross_correlation function.
 #
 # (c) Simon Vaughan, University of Leicester
 # -----------------------------------------------------------
@@ -74,7 +74,7 @@ matrix.tau <- function(x, y) {
 #' \code{dcf} returns the Discrete Correlation Function estimates.
 #'
 #' @param tau (vector) list of lags at which to compute the CCF.
-#' @inheritParams cross.correlate
+#' @inheritParams cross_correlate
 #'
 #' @return
 #' A data frame containing columns:
@@ -116,7 +116,7 @@ matrix.tau <- function(x, y) {
 #' assumed to be the same error for each data point. If \code{use.errors = FALSE}
 #' (default) then the usual sample variance will be used.
 #' 
-#' @seealso \code{\link{cross.correlate}}, \code{\link{iccf}}
+#' @seealso \code{\link{cross_correlate}}, \code{\link{iccf}}
 #' @examples 
 #' ## Example using NGC 5548 data
 #' res <- dcf(cont, hbeta, tau = seq(-200, 200, by = 5))
@@ -196,7 +196,7 @@ dcf <- function(ts.1, ts.2,
   dtau <- diff(tau[1:2])
   
   # compute a n.1 x n.2 matrix of the lags for every pair of data points
-  tau.12 <- matrix.tau(t.1, t.2)
+  tau.12 <- matrix_tau(t.1, t.2)
   
   # convert matrix of tau values to lag bins (-lag.bins:lag.bins)
   # by rounding the lag to the nearest integer of dtau.

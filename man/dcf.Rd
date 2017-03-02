@@ -79,5 +79,5 @@ grid()
 
 }
 \seealso{
-\code{\link{cross.correlate}}, \code{\link{iccf}}
+\code{\link{cross_correlate}}, \code{\link{iccf}}
 }

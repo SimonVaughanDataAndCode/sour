@@ -6,7 +6,7 @@
 #  05/04/16 - v1.1 - added na.rm option to strip out non-finite values
 #  09/04/16 - v1.2 - minor fixes
 #  24/07/16 - v1.3 - moved most checks and tau calculation to the 
-#                     main cross.correlation function.
+#                     main cross_correlation function.
 #
 # (c) Simon Vaughan, University of Leicester
 # -----------------------------------------------------------
@@ -16,7 +16,7 @@
 #' \code{iccf} returns the Interpolated Cross-Correlation Function estimates.
 #'
 #' @param tau (vector) list of lags at which to compute the CCF.
-#' @inheritParams cross.correlate
+#' @inheritParams cross_correlate
 #'
 #' @return
 #' A data frame containing columns:
@@ -37,7 +37,7 @@
 #' \code{ccf}. The interpolation is handled by the \code{approx} function for
 #' linear interpolation.
 #' 
-#' @seealso \code{\link{cross.correlate}}, \code{\link{dcf}}, \code{\link[stats]{approx}}
+#' @seealso \code{\link{cross_correlate}}, \code{\link{dcf}}, \code{\link[stats]{approx}}
 #' 
 #' @examples 
 #' ## Example using NGC 5548 data
@@ -76,11 +76,11 @@ iccf <- function(ts.1, ts.2,
   lag.bins <- as.integer(n.tau - 1)/2
   dtau <- diff(tau[1:2])
   
-  # main calculation (using iccf.core function)
-  iccf.ij <- iccf.core(t.1, x.1, t.2, x.2, tau, local.est = local.est, cov = cov)
+  # main calculation (using iccf_core function)
+  iccf.ij <- iccf_core(t.1, x.1, t.2, x.2, tau, local.est = local.est, cov = cov)
   r.ij <- iccf.ij$r
   if (one.way == FALSE) {
-    iccf.ji <- iccf.core(t.2, x.2, t.1, x.1, -tau, local.est = local.est, cov = cov)
+    iccf.ji <- iccf_core(t.2, x.2, t.1, x.1, -tau, local.est = local.est, cov = cov)
     r.ji <- iccf.ji$r
     r <- 0.5 * (r.ij + r.ji)
   } else {
@@ -107,7 +107,7 @@ iccf <- function(ts.1, ts.2,
 
 #' Compute the one-way Interpolated Cross-Correlation Function (ICCF)
 #' 
-#' \code{iccf.core} returns the basic interpolated correlation coefficients.
+#' \code{iccf_core} returns the basic interpolated correlation coefficients.
 #' 
 #' The main loop for the ICCF. In this part we take time series 1, \code{x.1} at
 #' \code{t.1}, pair them with values from time series 2, \code{x.2} at
@@ -125,7 +125,7 @@ iccf <- function(ts.1, ts.2,
 #' 
 #' @param t.1,x.1 time and value for time series 1
 #' @param t.2,x.2 time and value for time series 2
-#' @inheritParams cross.correlate
+#' @inheritParams cross_correlate
 #' 
 #' @return 
 #'  A list with components
@@ -138,7 +138,7 @@ iccf <- function(ts.1, ts.2,
 #'  We assume that the input data \code{x.1} and \code{x.2} have been
 #'  mean-subtracted.
 #'  
-#' @seealso \code{\link{cross.correlate}}, \code{\link{iccf}}
+#' @seealso \code{\link{cross_correlate}}, \code{\link{iccf}}
 #' 
 #' @examples
 #' ## Example using NGC 5548 data
@@ -147,11 +147,11 @@ iccf <- function(ts.1, ts.2,
 #' t2 <- hbeta$t
 #' y2 <- hbeta$y - mean(hbeta$y)
 #' tau <- seq(-150, 150)
-#' result <- iccf.core(t1, y1, t2, y2, tau = tau)
+#' result <- iccf_core(t1, y1, t2, y2, tau = tau)
 #' plot(tau, result$r, type = "l")
 #'  
 #' @export
-iccf.core <- function(t.1, x.1, 
+iccf_core <- function(t.1, x.1, 
                       t.2, x.2, 
                       tau, 
                       local.est = FALSE,
