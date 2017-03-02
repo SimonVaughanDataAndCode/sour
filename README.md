@@ -3,15 +3,19 @@ Functions for cross correlation of unevenly sampled time series.
 
 Sour is an R package for estimating the cross-correlation between
 two time series which may be irregularly and/or non-simultaneously sampled. It
-is also a cocktail: 
+is [also a cocktail](https://en.wikipedia.org/wiki/Whiskey_sour): 
+
 ![example](figs/Whiskey-Sour-icon.png))
 
-The
-CCF is computed using one of two methods: (1) the Discrete Correlation Function
-(DCF; Edelson & Krolik 1988) or (2) the Interpolated Cross Correlation Function
-(ICCF; Gaskell & Sparke 1986). You can also produce estimates of uncertainty on
-the CCF, its peak and centroid using the Flux Randomisation and Random Subsample
-Selection (FR/RSS) method of Peterson et al. (1998).
+## Method
+
+The CCF is computed using one of two methods:
+* interpolated Cross Correlation Function (ICCF; Gaskell & Sparke 1986). 
+* the Discrete Correlation Function (DCF; Edelson & Krolik 1988)
+
+You can also produce estimates of uncertainty on the CCF, its peak and centroid
+using the Flux Randomisation and Random Subsample Selection (FR/RSS) method of
+Peterson et al. (1998).
 
 ## Setting up
 
