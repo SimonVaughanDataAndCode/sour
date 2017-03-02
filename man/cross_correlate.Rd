@@ -72,6 +72,14 @@ Selection (FR/RSS) method of Peterson et al. (1998).
 If only one time series is given as input then the Auto-Correlation Function
 (ACF) is computed.
 
+Input data frames: note that the input data \code{ts.1} and \code{ts.2} are 
+not traditional \code{R} time series objects. Such objects are only suitable 
+for regularly sampled data. These CCF functions are designed to work with 
+data of arbitrary sampling, we therefore need to explicitly list times and 
+values. The input objects are therefore data.frames with at least two columns
+which much be called \code{t} (time) and \code{y} (value). An error of the 
+value may be provided by a \code{dy} column. Any other columns are ignored.
+
 Local vs. global estimation: If \code{local.est = FALSE} (default) then the
 correlation coefficient is computed sing the 'global' mean and variance of
 each time series. If \code{local.est = TRUE} then the correlation coefficient
