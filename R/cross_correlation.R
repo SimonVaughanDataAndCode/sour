@@ -32,6 +32,7 @@
 #' @param peak.frac    (float) only include CCF points above \code{peak.frac}*max(ccf) in centroid calculation.   
 #' @param chatter      (integer) set the level of feedback.
 #' @param plot         (logical) if \code{TRUE} then a plot of the ccf vs. tau is produced.
+#' @param ...          (other) any other plot function parameters.
 #' 
 #' @return 
 #'  A list with components

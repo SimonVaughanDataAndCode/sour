@@ -14,6 +14,8 @@ cross_correlate(ts.1, ts.2, method = "iccf", max.lag = NULL, min.pts = 5,
 
 \item{method}{(string) use \code{"dcf"} or \code{"iccf"} (default).}
 
+\item{max.lag}{(float) maximum lag at which to compute the CCF.}
+
 \item{min.pts}{(integer) each DCF bin must contain at least \code{min.pts} correlation coefficients.}
 
 \item{dtau}{(float) spacing of the time delays (\code{tau}) which which CCF is estimated.}
@@ -37,8 +39,6 @@ cross_correlate(ts.1, ts.2, method = "iccf", max.lag = NULL, min.pts = 5,
 \item{chatter}{(integer) set the level of feedback.}
 
 \item{plot}{(logical) if \code{TRUE} then a plot of the ccf vs. tau is produced.}
-
-\item{lag.max}{(float) maximum lag at which to compute the CCF.}
 }
 \value{
 A list with components

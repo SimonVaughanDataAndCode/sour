@@ -11,6 +11,8 @@ iccf_core(t.1, x.1, t.2, x.2, tau, local.est = FALSE, cov = FALSE)
 
 \item{t.2, x.2}{time and value for time series 2}
 
+\item{tau}{(vector) list of lags at which to compute the CCF.}
+
 \item{local.est}{(logical) use 'local' (not 'global') means and variances?}
 
 \item{cov}{(logical) if \code{TRUE} then compute covariance, not correlation coefficient.}
