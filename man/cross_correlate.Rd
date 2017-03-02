@@ -39,6 +39,8 @@ cross_correlate(ts.1, ts.2, method = "iccf", max.lag = NULL, min.pts = 5,
 \item{chatter}{(integer) set the level of feedback.}
 
 \item{plot}{(logical) if \code{TRUE} then a plot of the ccf vs. tau is produced.}
+
+\item{...}{(other) any other plot function parameters.}
 }
 \value{
 A list with components
