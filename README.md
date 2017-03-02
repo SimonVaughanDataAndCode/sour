@@ -5,7 +5,7 @@ Sour is an R package for estimating the cross-correlation between
 two time series which may be irregularly and/or non-simultaneously sampled. It
 is [also a cocktail](https://en.wikipedia.org/wiki/Whiskey_sour): 
 
-![example](figs/Whiskey-Sour-icon.png))
+![example](figs/Whiskey-Sour-icon.png)
 
 ## Method
 
