@@ -30,7 +30,7 @@ The package comes with an example dataset. The data comprise two time series con
   grid()
 ```
 
-![example](figures/ngc5548_data.png)
+![example](figs/ngc5548_data.png)
 
 The data show measurements of the optical continuum and H-beta line flux for the
 active galaxy NGC 5548, obtained by [AGN
@@ -44,7 +44,7 @@ We can compute the CCF, using the ICCF method, as follows:
   grid()
 ```
 
-![example](figures/ngc5548.png)
+![example](figs/ngc5548.png)
 
 The CCF peak at around -20 days indicates the Hbeta lags behind the continuum.
 
@@ -61,7 +61,7 @@ simulations to use (nsim = 2000) when estimating the centroid distribution.
 Setting local.est = TRUE means that the mean and variances are computed using
 only pairs of data contributing to a given lag bin.
 
-![example](figures/centroid_dist.png)
+![example](figs/centroid_dist.png)
 
 We can use these simulations to place intervals on the lag. Here we show the quartiles for the CCF centroid.
 
