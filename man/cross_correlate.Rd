@@ -7,7 +7,7 @@
 cross_correlate(ts.1, ts.2, method = "iccf", max.lag = NULL, min.pts = 5,
   dtau = NULL, local.est = FALSE, zero.clip = NULL, use.errors = FALSE,
   one.way = FALSE, cov = FALSE, prob = 0.1, nsim = 0, peak.frac = 0.8,
-  chatter = 0, plot = FALSE, ...)
+  chatter = 0)
 }
 \arguments{
 \item{ts.1, ts.2}{(array or dataframe) data for time series 1 and 2.}
@@ -37,10 +37,6 @@ cross_correlate(ts.1, ts.2, method = "iccf", max.lag = NULL, min.pts = 5,
 \item{peak.frac}{(float) only include CCF points above \code{peak.frac}*max(ccf) in centroid calculation.}
 
 \item{chatter}{(integer) set the level of feedback.}
-
-\item{plot}{(logical) if \code{TRUE} then a plot of the ccf vs. tau is produced.}
-
-\item{...}{(other) any other plot function parameters.}
 }
 \value{
 A list with components
@@ -114,7 +110,7 @@ confidence limits are based on the simulations.
 
 \examples{
  ## Example using NGC 5548 data
- result <- cross_correlate(cont, hbeta, method = "iccf", dtau = 1, max.lag = 550)
+ result <- cross_correlate(cont, hbeta, dtau = 1, max.lag = 550)
  plot(result$tau, result$ccf, type = "l", bty = "n", xlab = "time delay", ylab = "CCF")
  grid()
  
@@ -128,7 +124,8 @@ confidence limits are based on the simulations.
  tsm <- data.frame(t = time(mdeaths), y = mdeaths)
 
  ## compute CCF using ICCF method
- result <- cross_correlate(tsm, tsf, plot = TRUE, method = "iccf")
+ result <- cross_correlate(tsm, tsf, method = "iccf")
+ plot_ccf(result)
 
  ## compute CCF using standard method (stats package) and compare
  result.st <- ccf(mdeaths, fdeaths, plot = FALSE)

@@ -31,8 +31,6 @@
 #' @param nsim         (integer) number of FR/RSS simulations to run 
 #' @param peak.frac    (float) only include CCF points above \code{peak.frac}*max(ccf) in centroid calculation.   
 #' @param chatter      (integer) set the level of feedback.
-#' @param plot         (logical) if \code{TRUE} then a plot of the ccf vs. tau is produced.
-#' @param ...          (other) any other plot function parameters.
 #' 
 #' @return 
 #'  A list with components
@@ -94,7 +92,7 @@
 #' 
 #' @examples
 #'  ## Example using NGC 5548 data
-#'  result <- cross_correlate(cont, hbeta, method = "iccf", dtau = 1, max.lag = 550)
+#'  result <- cross_correlate(cont, hbeta, dtau = 1, max.lag = 550)
 #'  plot(result$tau, result$ccf, type = "l", bty = "n", xlab = "time delay", ylab = "CCF")
 #'  grid()
 #'  
@@ -108,7 +106,8 @@
 #'  tsm <- data.frame(t = time(mdeaths), y = mdeaths)
 #' 
 #'  ## compute CCF using ICCF method
-#'  result <- cross_correlate(tsm, tsf, plot = TRUE, method = "iccf")
+#'  result <- cross_correlate(tsm, tsf, method = "iccf")
+#'  plot_ccf(result)
 #' 
 #'  ## compute CCF using standard method (stats package) and compare
 #'  result.st <- ccf(mdeaths, fdeaths, plot = FALSE)
@@ -128,8 +127,7 @@ cross_correlate <- function(ts.1, ts.2,
                             prob = 0.1, 
                             nsim = 0,
                             peak.frac = 0.8,
-                            chatter = 0,
-                            plot = FALSE, ...) {
+                            chatter = 0) {
   
   # check arguments
   if (missing(ts.1)) stop('Missing ts.1 data frame.')
@@ -220,19 +218,6 @@ cross_correlate <- function(ts.1, ts.2,
     cat('-- dtau:      ', dtau, fill = TRUE)
   }
   
-  # plot the CCF
-  if (plot == TRUE) {
-    plot(0, 0, type = "n", lwd = 2, bty = "n", ylim = c(-1, 1), xlim = c(-1, 1)*max.lag,
-         xlab = "lag", ylab = "CCF", ...)
-    grid(col = "lightgrey")
-    dtau <- diff(ccf.out$tau[1:2])
-    if (method == "dcf") {
-      lines(ccf.out$tau-dtau/2, ccf.out$ccf, type="s", lwd = 2, col = "blue")
-    } else {
-      lines(ccf.out$tau, ccf.out$ccf, col = "blue", lwd = 3)
-    }
-  }
-  
   # set up blanks if no simulations are run
   lower <- NA
   upper <- NA
@@ -243,7 +228,8 @@ cross_correlate <- function(ts.1, ts.2,
   if (nsim > 0) {
   
     # check we have enough simulations
-    if (nsim < 2/max(prob)) stop('Not enough simulations. Make nsim or prob larger.')
+    if (nsim < 2/max(prob)) 
+      stop('Not enough simulations. Make nsim or prob larger.')
         
     # run some simulations
     sims <- ccf_errors(ts.1, ts.2, tau, nsim = nsim,
@@ -286,18 +272,6 @@ cross_correlate <- function(ts.1, ts.2,
     upper <- ccf.out$ccf + sigma
   }
   
-  # plot confidence bands
-  if (plot == TRUE) {
-    pnk <- rgb(255, 192, 203, 100, maxColorValue = 255)
-    indx <- is.finite(ccf.out$ccf)
-    polygon(c(ccf.out$tau[indx], rev(ccf.out$tau[indx])), c(lower[indx], rev(upper[indx])), 
-            col=pnk, border = NA)
-    if (method == "dcf") {
-      lines(ccf.out$tau-dtau/2, ccf.out$ccf, type = "s", lwd = 2, col = "blue")
-    } else {
-      lines(ccf.out$tau, ccf.out$ccf, col = "blue", lwd = 3)
-    }
-  }
   
   # return output  
   result <- list(tau = ccf.out$tau, 
@@ -310,6 +284,51 @@ cross_correlate <- function(ts.1, ts.2,
   return(result)
 }
 
+
+# -----------------------------------------------------------
+
+#' Plot CCF output from cross_correlate
+#' 
+#' \code{plot_ccf} generates a summary plot of CCF data.
+#' 
+#' @param ccf A list containing \code{tau} and \code{ccf} values as produced by \code{cross_correlate}.
+#' @param ... Any other arguments for the \code{plot()} function.
+#' 
+#' @return None.
+#' 
+#' @seealso \code{\link{cross_correlate}}
+#' 
+#' @export
+ plot_ccf <- function(ccf, ...) {
+
+  # plot the CCF
+
+  max.lag <- max(ccf$tau)
+  plot(0, 0, type = "n", lwd = 2, bty = "n", ylim = c(-1, 1), 
+       xlim = c(-1, 1 )* max.lag, xlab = "lag", ylab = "CCF", ...)
+  grid(col = "lightgrey")
+  
+  dtau <- diff(ccf$tau[1:2])
+  if (ccf$method == "dcf") {
+    lines(ccf$tau-dtau/2, ccf$ccf, type="s", lwd = 2, col = "blue")
+  } else {
+    lines(ccf$tau, ccf$ccf, col = "blue", lwd = 3)
+  }
+
+  # plot confidence bands
+
+  pnk <- rgb(255, 192, 203, 100, maxColorValue = 255)
+  indx <- is.finite(ccf$ccf)
+  polygon(c(ccf$tau[indx], rev(ccf$tau[indx])), 
+          c(ccf$lower[indx], rev(ccf$upper[indx])), 
+          col = pnk, border = NA)
+  if (ccf$method == "dcf") {
+    lines(ccf$tau-dtau/2, ccf$ccf, type = "s", lwd = 2, col = "blue")
+  } else {
+    lines(ccf$tau, ccf$ccf, col = "blue", lwd = 3)
+  }
+
+ }
 
 
 # -----------------------------------------------------------
@@ -447,7 +466,8 @@ fr_rss <- function(dat) {
 #' and "random subset sampling" FR/RSS using the \code{fr_rss} function.
 #'
 #' @param tau (array) list of lags at which the CCF is to be evaluated.
-#' @param acf.flag (TRUE)logical) \code{TRUE} when computing ACF, and \code{ts.2 = ts.1}
+#' @param acf.flag (logical) \code{TRUE} when computing ACF, 
+#'                  and \code{ts.2 = ts.1}
 #' @inheritParams cross_correlate
 #'
 #' @return 
@@ -551,10 +571,10 @@ ccf_errors <- function(ts.1, ts.2,
                       sum(result.sim$ccf[mask], na.rm = TRUE)
     }
     
-    cat("\r Processed", i, "of", nsim, "simulations")
+    if (chatter > 0) cat("\r Processed", i, "of", nsim, "simulations")
   }
 
-  cat(fill = TRUE)
+  if (chatter > 0) cat(fill = TRUE)
 
   # now compute the prob/2 and 1-prob/2 quantiles at each lag
   ccf.lims <- array(NA, dim = c(nlag, 2))
@@ -570,12 +590,12 @@ ccf_errors <- function(ts.1, ts.2,
   dists <- data.frame(peak.lag = peak.lag, cent.lag = cent.lag)
   
   # interval of centroids
-  if (chatter >= 0) 
+  if (chatter > 0) 
   cat('-- ', signif(100*(1-prob), 3), '% lag interval ', 
       quantile(cent.lag, probs[1], na.rm = TRUE), ' - ',
       quantile(cent.lag, probs[2], na.rm = TRUE), fill = TRUE, sep = "")
   
-  
+  # return data back to calling function
   return(list(lags = lags, dists = dists))
 }
 

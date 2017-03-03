@@ -36,7 +36,8 @@ ccf_errors(ts.1, ts.2, tau = NULL, min.pts = 5, local.est = FALSE,
 
 \item{use.errors}{(logical) if \code{TRUE} then subtract mean square error from variances.}
 
-\item{acf.flag}{(TRUE)logical) \code{TRUE} when computing ACF, and \code{ts.2 = ts.1}}
+\item{acf.flag}{(logical) \code{TRUE} when computing ACF, 
+and \code{ts.2 = ts.1}}
 
 \item{chatter}{(integer) set the level of feedback.}
 }
