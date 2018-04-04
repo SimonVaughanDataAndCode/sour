@@ -82,6 +82,8 @@ We can use these simulations to place intervals on the lag. Here we show the qua
 ## To do:
  * Bring interpolation outside of main loop (in iccf_core) for speed
  * understand the DCF: why max|CCF| > 1 occurs and ACF(0) != 1 sometimes. 
+ * unit tests: 1. ACF of H-beta should peak at r=1; 2. ACF for random white noise 
+ should peak with r=1 at tau=0; shouldbe symmetric about tau = 0.
 
 ## References
 
